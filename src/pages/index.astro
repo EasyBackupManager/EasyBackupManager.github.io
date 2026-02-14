@@ -5,12 +5,47 @@ import latestRelease from '../../public/latest.json';
 const title = 'EasyBackupManager — Set-and-forget backups with reliable restore';
 const description = 'EasyBackupManager (EBM) is a free, open-source desktop backup app for Windows and Linux. A fast, performant C++ GUI wrapper for restic — privacy-friendly, secure, and easy to use for reliable backups and restores.';
 
-const hasRelease = latestRelease?.version && latestRelease?.assets;
+const hasRelease = latestRelease?.version && latestRelease?.files;
 const version = latestRelease?.version ?? '';
-const win = latestRelease?.assets?.windows_exe;
-const linux = latestRelease?.assets?.linux_appimage;
-const sums = latestRelease?.assets?.sha256sums;
-const releaseUrl = latestRelease?.release_url ?? 'https://EasyBackupManager/releases/latest';
+const tag = latestRelease?.tag ?? '';
+const repoBase = latestRelease?.repo_base_url ?? 'https://github.com/EasyBackupManager/EasyBackupManager';
+const winFile = latestRelease?.files?.windows;
+const linuxFile = latestRelease?.files?.linux;
+const sums = latestRelease?.files?.sha256sums;
+
+const makeReleaseUrl = (repo, tag) => {
+  if (!repo) return '';
+  if (!tag) return repo;
+  try {
+    if (repo.includes('/releases/tag')) {
+      return repo.endsWith('/') ? `${repo}${tag}` : `${repo}/${tag}`;
+    }
+    if (repo.endsWith('/')) return `${repo}releases/tag/${tag}`;
+    return `${repo}/releases/tag/${tag}`;
+  } catch (e) {
+    return repo;
+  }
+};
+
+const makeDownloadUrl = (repo, tag, filename) => {
+  if (!repo || !tag || !filename) return '';
+  try {
+    if (repo.includes('/releases/download')) {
+      return repo.endsWith('/') ? `${repo}${tag}/${filename}` : `${repo}/${tag}/${filename}`;
+    }
+    if (repo.includes('/releases/tag')) {
+      const base = repo.replace('/releases/tag', '/releases/download').replace(/\/$/, '');
+      return `${base}/${tag}/${filename}`;
+    }
+    return repo.endsWith('/') ? `${repo}releases/download/${tag}/${filename}` : `${repo}/releases/download/${tag}/${filename}`;
+  } catch (e) {
+    return '';
+  }
+};
+
+const winUrl = makeDownloadUrl(repoBase, tag, winFile?.name);
+const linuxUrl = makeDownloadUrl(repoBase, tag, linuxFile?.name);
+const releaseUrl = makeReleaseUrl(repoBase, tag);
 ---
 
 <BaseLayout title={title} description={description} version={version}>
@@ -28,8 +63,8 @@ const releaseUrl = latestRelease?.release_url ?? 'https://EasyBackupManager/rele
       <span class="badge">Fast &amp; performant</span>
     </p>
     <div class="btn-group">
-      <a href="#download" class="btn btn-primary">Download EBM</a>
-      <a href="https://EasyBackupManager" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
+      <a href="/#download" class="btn btn-primary">Download EBM</a>
+      <a href="https://github.com/EasyBackupManager/EasyBackupManager.github.io/releases" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
     </div>
   </section>
 
@@ -173,59 +208,85 @@ const releaseUrl = latestRelease?.release_url ?? 'https://EasyBackupManager/rele
           <p class="section-subtitle">Latest version: <strong>v{version}</strong> &mdash; released {latestRelease.released_at}</p>
 
           <div class="download-assets">
-            {win && (
+            {winFile && (
               <div class="download-asset">
                 <div class="os-label">Windows</div>
-                <div class="filename">{win.name}</div>
-                <a href={win.url} class="btn btn-primary">Download for Windows</a>
-                {win.sha256 && (
+                <div class="filename">{winFile.name}</div>
+                <a href={winUrl} class="btn btn-primary">Download for Windows</a>
+                <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="windows" data-name={winFile.name} data-sha={winFile.sha256}>Download checksum file</button>
+                {winFile.sha256 && (
                   <Fragment>
                     <div class="checksum-label">SHA256</div>
-                    <div class="checksum-value">{win.sha256}</div>
+                    <div class="checksum-value">{winFile.sha256}</div>
+                    <p style="font-size:0.9rem;margin-top:var(--space-sm);">Full verification instructions: <a href="/verify/windows">Windows verification guide</a></p>
                   </Fragment>
                 )}
               </div>
             )}
-            {linux && (
+            {linuxFile && (
               <div class="download-asset">
                 <div class="os-label">Linux</div>
-                <div class="filename">{linux.name}</div>
-                <a href={linux.url} class="btn btn-primary">Download for Linux</a>
-                {linux.sha256 && (
+                <div class="filename">{linuxFile.name}</div>
+                <a href={linuxUrl} class="btn btn-primary">Download for Linux</a>
+                <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="linux" data-name={linuxFile.name} data-sha={linuxFile.sha256}>Download checksum file</button>
+                {linuxFile.sha256 && (
                   <Fragment>
                     <div class="checksum-label">SHA256</div>
-                    <div class="checksum-value">{linux.sha256}</div>
+                    <div class="checksum-value">{linuxFile.sha256}</div>
+                    <p style="font-size:0.9rem;margin-top:var(--space-sm);">Full verification instructions: <a href="/verify/linux">Linux verification guide</a></p>
                   </Fragment>
                 )}
               </div>
             )}
           </div>
 
-          {sums && (
-            <p style="font-size:0.9rem;color:var(--color-muted);margin-bottom:var(--space-lg);">
-              Full checksum file: <a href={sums.url}>{sums.name}</a>
-            </p>
-          )}
         </Fragment>
       ) : (
         <p class="section-subtitle">Release information is currently unavailable.</p>
       )}
-
-      <div class="btn-group" style="justify-content:flex-start;margin-bottom:var(--space-xl);">
-        <a href={releaseUrl} class="btn btn-secondary" target="_blank" rel="noopener">View latest release on GitHub</a>
-      </div>
-
-      <h3 style="font-size:1.1rem;margin-bottom:var(--space-md);">Verify your download</h3>
-      <p style="font-size:0.9rem;color:var(--color-muted);margin-bottom:var(--space-md);">Always verify the checksum after downloading to ensure file integrity.</p>
-
-      <p style="font-size:0.9rem;font-weight:600;margin-bottom:var(--space-xs);">Windows (PowerShell):</p>
-      <div class="code-block"><code>Get-FileHash .\EasyBackupManager-Setup-{version || '&lt;version&gt;'}.exe -Algorithm SHA256</code></div>
-
-      <p style="font-size:0.9rem;font-weight:600;margin-bottom:var(--space-xs);">Linux:</p>
-      <div class="code-block"><code>sha256sum EasyBackupManager-{version || '&lt;version&gt;'}.AppImage</code></div>
-
-      <p style="font-size:0.85rem;color:var(--color-muted);margin-top:var(--space-md);">Compare the output to the checksum shown above or in the <code>SHA256SUMS.txt</code> file from the release.</p>
+  
     </div>
   </section>
 </BaseLayout>
+
+<script>
+function normalizeSha(s) {
+  if (!s) return '';
+  return String(s).replace(/^sha256:/i, '');
+}
+
+function generateSumsFromElement(el) {
+  try {
+    if(!el) return;
+    var name = el.getAttribute('data-name');
+    var sha = normalizeSha(el.getAttribute('data-sha') || '');
+    if(!name) return alert('File name missing');
+    var content = sha + '  ' + name + '\n';
+    var blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'SHA256SUMS.txt';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  } catch(e) {
+    console.error(e);
+    alert('Failed to generate checksum file');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    document.querySelectorAll('button[data-sha], button[data-name]').forEach(function (btn) {
+      if (btn._ebmAttached) return;
+      btn.addEventListener('click', function () { generateSumsFromElement(btn); });
+      btn._ebmAttached = true;
+    });
+  } catch (e) {
+    console.error('EBM checksum attach failed', e);
+  }
+});
+</script>
 
