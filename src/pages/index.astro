@@ -3,9 +3,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import latestRelease from '../../public/latest.json';
 
 const title = 'EasyBackupManager — Set-and-forget backups with reliable restore';
-const description = 'EasyBackupManager (EBM) is a free, open-source desktop backup app for Windows and Linux. A fast, performant C++ GUI wrapper for restic — privacy-friendly, secure, and easy to use for reliable backups and restores.';
+const description = 'EasyBackupManager (EBM) is a free desktop backup app for Windows and Linux. A fast, performant C++ GUI wrapper for restic — privacy-friendly, secure, and easy to use for reliable backups and restores.';
 
-const hasRelease = latestRelease?.version && latestRelease?.files;
 const version = latestRelease?.version ?? '';
 const tag = latestRelease?.tag ?? '';
 const repoBase = latestRelease?.repo_base_url ?? 'https://github.com/EasyBackupManager/EasyBackupManager.github.io/';
