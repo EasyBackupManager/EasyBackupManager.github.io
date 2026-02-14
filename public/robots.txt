@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://easybackupmanager.com/sitemap.xml
