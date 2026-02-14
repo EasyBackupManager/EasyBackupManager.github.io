@@ -1,0 +1,189 @@
+---
+export interface Props {
+  title: string;
+  description: string;
+  version?: string;
+}
+
+const { title, description, version } = Astro.props;
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+const ogImage = new URL('/og-image.png', Astro.site);
+const siteName = 'EasyBackupManager';
+const keywords = [
+  'backup',
+  'backup software',
+  'restic',
+  'restic GUI',
+  'restic wrapper',
+  'free',
+  'cross-platform',
+  'Windows',
+  'Linux',
+  'restore',
+  'encrypted backups',
+  'privacy-friendly',
+  'C++',
+  'fast',
+  'performant'
+].join(', ');
+
+const schema = {
+  '@context': 'https://schema.org',
+  '@type': 'SoftwareApplication',
+  name: title,
+  description,
+  url: canonicalURL.href,
+  image: ogImage.href,
+  applicationCategory: 'BackupApplication',
+  operatingSystem: 'Windows, Linux',
+  softwareVersion: version || undefined,
+  isAccessibleForFree: true,
+  author: {
+    '@type': 'Organization',
+    name: siteName
+  },
+  programmingLanguage: 'C++'
+};
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <!-- SEO -->
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="keywords" content={keywords} />
+    <meta name="author" content={siteName} />
+    <meta name="application-name" content={siteName} />
+    <link rel="canonical" href={canonicalURL.href} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+
+    <!-- OpenGraph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={siteName} />
+    <meta property="og:url" content={canonicalURL.href} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={ogImage.href} />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content={canonicalURL.href} />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage.href} />
+
+    <script type="application/ld+json">{JSON.stringify(schema)}</script>
+
+    <link rel="stylesheet" href="/styles/global.css" />
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FQHRCVG3C6"></script>
+    <script is:inline>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);} 
+      gtag('js', new Date());
+      gtag('config', 'G-FQHRCVG3C6');
+    </script>
+    <script is:inline>
+      (function() {
+        var t = localStorage.getItem('theme');
+        if (!t) t = 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      })();
+    </script>
+      <script is:inline>
+        (function(){
+          // Site-wide client-side gate: if not authenticated, redirect to /login
+          // Authentication is stored in sessionStorage so it clears when the tab is closed.
+          try {
+            var authKey = 'ebm_auth';
+            var p = location.pathname.replace(/\/+$/, '') || '/';
+            if (p === '/login') return;
+            if (!sessionStorage.getItem(authKey)) {
+              location.replace('/login?redirect=' + encodeURIComponent(p));
+            }
+          } catch (e) {
+            // ignore errors
+          }
+        })();
+      </script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="/" class="logo-link">
+          <img src="/logo.svg" alt="EasyBackupManager logo" class="logo-img" width="36" height="36" />
+          <span class="logo-text">EasyBackupManager</span>
+        </a>
+        <nav class="main-nav">
+          <a href="/#download">Download</a>
+          <a href="/privacy">Privacy</a>
+          <a href="https://mastodon.social/@ebm" target="_blank" rel="noopener me">Mastodon</a>
+          <a href="/login" id="logout-link" style="display:none;">Logout</a>
+          <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark/light theme">
+            <span id="theme-icon"></span>
+          </button>
+        </nav>
+      </div>
+      <script is:inline>
+        (function(){
+          // Show logout link only when session is active
+          try {
+            var authKey = 'ebm_auth';
+            var logout = document.getElementById('logout-link');
+            if (!logout) return;
+            if (sessionStorage.getItem(authKey)) {
+              logout.style.display = 'inline-block';
+              logout.addEventListener('click', function(e){
+                e.preventDefault();
+                sessionStorage.removeItem(authKey);
+                location.href = '/login';
+              });
+            }
+          } catch (e) {}
+        })();
+      </script>
+    </header>
+
+    <script is:inline>
+      (function() {
+        var btn = document.getElementById('theme-toggle');
+        var icon = document.getElementById('theme-icon');
+        function update() {
+          var d = document.documentElement.getAttribute('data-theme') === 'dark';
+          icon.textContent = d ? '\u2600\uFE0F' : '\uD83C\uDF19';
+          btn.setAttribute('aria-label', d ? 'Switch to light theme' : 'Switch to dark theme');
+        }
+        update();
+        btn.addEventListener('click', function() {
+          var next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+          document.documentElement.setAttribute('data-theme', next);
+          localStorage.setItem('theme', next);
+          update();
+        });
+      })();
+    </script>
+
+    <main>
+      <slot />
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <p>&copy; {new Date().getFullYear()} EasyBackupManager is Free Software.</p>
+        <nav class="footer-nav">
+          <a href="/privacy">Privacy &amp; Telemetry</a>
+          <a href="https://mastodon.social/@ebm" target="_blank" rel="noopener me">Mastodon</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

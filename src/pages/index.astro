@@ -1,0 +1,231 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import latestRelease from '../../public/latest.json';
+
+const title = 'EasyBackupManager — Set-and-forget backups with reliable restore';
+const description = 'EasyBackupManager (EBM) is a free, open-source desktop backup app for Windows and Linux. A fast, performant C++ GUI wrapper for restic — privacy-friendly, secure, and easy to use for reliable backups and restores.';
+
+const hasRelease = latestRelease?.version && latestRelease?.assets;
+const version = latestRelease?.version ?? '';
+const win = latestRelease?.assets?.windows_exe;
+const linux = latestRelease?.assets?.linux_appimage;
+const sums = latestRelease?.assets?.sha256sums;
+const releaseUrl = latestRelease?.release_url ?? 'https://EasyBackupManager/releases/latest';
+---
+
+<BaseLayout title={title} description={description} version={version}>
+  <!-- ===== 1. HERO ===== -->
+  <section class="hero container">
+    <img src="/logo.svg" alt="EasyBackupManager logo" class="hero-logo" width="96" height="96" />
+    <h1>Set-and-forget backups,<br />with reliable restore</h1>
+    <p>EasyBackupManager (EBM) wraps the power of <strong>restic</strong> in a clean desktop GUI for <strong>Windows</strong> and <strong>Linux</strong>. Free.</p>
+    <p class="hero-badges" style="margin-top:var(--space-md);">
+      <span class="badge">Free</span>
+      <span class="badge">restic-powered</span>
+      <span class="badge">Windows &amp; Linux</span>
+      <span class="badge">Privacy-friendly</span>
+      <span class="badge">Built in C++</span>
+      <span class="badge">Fast &amp; performant</span>
+    </p>
+    <div class="btn-group">
+      <a href="#download" class="btn btn-primary">Download EBM</a>
+      <a href="https://EasyBackupManager" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
+    </div>
+  </section>
+
+  <!-- ===== 2. WHY EBM EXISTS ===== -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Why EasyBackupManager exists</h2>
+      <p class="section-subtitle">restic is an excellent, battle-tested backup engine — but its command-line interface can be intimidating. EBM gives you all of restic's reliability through a straightforward graphical interface, so you can protect your data without memorizing terminal commands.</p>
+    </div>
+  </section>
+
+  <!-- ===== 3. KEY DIFFERENTIATORS ===== -->
+  <section class="section-alt">
+    <div class="container">
+      <h2 class="section-title">What makes EBM different</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>Standout restore experience</h3>
+          <p>Browse and restore individual files or full snapshots with confidence. EBM's restore interface is designed to be clear and stress-free — because restores matter most when things go wrong.</p>
+        </div>
+        <div class="card">
+          <h3>Intuitive simplicity</h3>
+          <p>No flags to remember, no config files to edit. Create backup profiles, pick your sources and destination, and let EBM handle the rest.</p>
+        </div>
+        <div class="card">
+          <h3>Backup profiles</h3>
+          <p>Organise different backup jobs into named profiles — each with its own source directories, repository, and retention policy.</p>
+        </div>
+        <div class="card">
+          <h3>Retention policies</h3>
+          <p>Set how many daily, weekly, and monthly snapshots to keep. EBM automatically prunes old snapshots to free up space while keeping your safety net intact.</p>
+        </div>
+        <div class="card">
+          <h3>Repository health checks</h3>
+          <p>Run integrity checks and prune operations on your restic repositories directly from the GUI — no terminal needed.</p>
+        </div>
+        <div class="card">
+          <h3>Windows &amp; Linux</h3>
+          <p>First-class support for both platforms. The same intuitive experience whether you're on Windows 10/11 or your favourite Linux distribution.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 4. HOW IT WORKS ===== -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">How it works</h2>
+      <p class="section-subtitle">EBM currently supports <strong>local repositories only</strong>. Back up to an external drive, NAS mount, or any locally-accessible path.</p>
+      <ol class="steps">
+        <li>
+          <strong>Create a profile</strong>
+          Give it a name, pick the folders you want to back up, and choose a local destination.
+        </li>
+        <li>
+          <strong>Set retention rules</strong>
+          Decide how many snapshots to keep (daily / weekly / monthly).
+        </li>
+        <li>
+          <strong>Run your backup</strong>
+          Click "Backup" and EBM handles the restic commands behind the scenes.
+        </li>
+        <li>
+          <strong>Restore when you need to</strong>
+          Browse snapshots, select files or folders, and restore with a few clicks.
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===== 5. SECURITY & ARCHITECTURE ===== -->
+  <section class="section-alt">
+    <div class="container">
+      <h2 class="section-title">Security &amp; Architecture</h2>
+      <div class="card-grid">
+        <div class="card">
+          <h3>restic encryption</h3>
+          <p>All backup data is encrypted at rest by restic using AES-256. EBM never weakens or bypasses this encryption.</p>
+        </div>
+        <div class="card">
+          <h3>Credential storage</h3>
+          <p>Repository passwords are stored in an <strong>encrypted local config</strong> file, which is a temporary solution. <span class="badge badge-planned">Planned</span> OS keyring integration will provide stronger protection in a future release.</p>
+        </div>
+        <div class="card">
+          <h3>Local repositories only</h3>
+          <p>Currently, backups are stored on locally-accessible paths (external drives, NAS mounts). <span class="badge badge-planned">Planned</span> Cloud backends (S3, B2, rclone, rest-server) are on the roadmap.</p>
+        </div>
+        <div class="card">
+          <h3>Telemetry (opt-out)</h3>
+          <p>EBM includes minimal, <strong>opt-out</strong> telemetry: anonymous usage counters and crash reports. It is <strong>off by default</strong> and can be disabled in Settings. No file contents, backup data, or credentials are ever collected. <a href="/privacy">Read the full policy&nbsp;&rarr;</a></p>
+        </div>
+      </div>
+
+      <h3 style="margin-top:var(--space-xl);margin-bottom:var(--space-md);font-size:1.1rem;">On the roadmap <span class="badge badge-planned">Planned</span></h3>
+      <ul style="padding-left:1.5rem;color:var(--color-muted);">
+        <li>Scheduled / automatic backups</li>
+        <li>Cloud backends (S3, B2, rclone, rest-server)</li>
+        <li>Command preview (see the restic command before it runs)</li>
+        <li>OS keyring credential storage</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ===== 6. RESTORE CONFIDENCE ===== -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Restore with confidence</h2>
+      <p class="section-subtitle">A backup is only as good as its restore. We strongly recommend running a <strong>test restore</strong> after your first backup to make sure everything works as expected.</p>
+      <div class="card" style="max-width:540px;">
+        <h3>Test restore checklist</h3>
+        <ol style="padding-left:1.5rem;margin-top:var(--space-sm);color:var(--color-muted);">
+          <li>Run a full backup with EBM.</li>
+          <li>Open the Restore view and select the latest snapshot.</li>
+          <li>Restore a few files to a temporary folder.</li>
+          <li>Verify the restored files match your originals.</li>
+        </ol>
+        <p style="margin-top:var(--space-md);font-size:0.9rem;color:var(--color-muted);">This takes just a few minutes and gives you peace of mind that your data is safe.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 7. INTERFACE PREVIEW ===== -->
+  <section class="section-alt">
+    <div class="container">
+      <h2 class="section-title">Interface preview</h2>
+      <p class="section-subtitle">Clean, focused, and built for clarity. Here's what EBM looks like in action.</p>
+      <div class="screenshot-grid">
+        <img src="/screenshots/backup-view.svg" alt="EBM backup view" loading="lazy" />
+        <img src="/screenshots/restore-view.svg" alt="EBM restore view" loading="lazy" />
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 8. DOWNLOAD ===== -->
+  <section class="section" id="download">
+    <div class="container">
+      <h2 class="section-title">Download EasyBackupManager</h2>
+
+      {hasRelease ? (
+        <Fragment>
+          <p class="section-subtitle">Latest version: <strong>v{version}</strong> &mdash; released {latestRelease.released_at}</p>
+
+          <div class="download-assets">
+            {win && (
+              <div class="download-asset">
+                <div class="os-label">Windows</div>
+                <div class="filename">{win.name}</div>
+                <a href={win.url} class="btn btn-primary">Download for Windows</a>
+                {win.sha256 && (
+                  <Fragment>
+                    <div class="checksum-label">SHA256</div>
+                    <div class="checksum-value">{win.sha256}</div>
+                  </Fragment>
+                )}
+              </div>
+            )}
+            {linux && (
+              <div class="download-asset">
+                <div class="os-label">Linux</div>
+                <div class="filename">{linux.name}</div>
+                <a href={linux.url} class="btn btn-primary">Download for Linux</a>
+                {linux.sha256 && (
+                  <Fragment>
+                    <div class="checksum-label">SHA256</div>
+                    <div class="checksum-value">{linux.sha256}</div>
+                  </Fragment>
+                )}
+              </div>
+            )}
+          </div>
+
+          {sums && (
+            <p style="font-size:0.9rem;color:var(--color-muted);margin-bottom:var(--space-lg);">
+              Full checksum file: <a href={sums.url}>{sums.name}</a>
+            </p>
+          )}
+        </Fragment>
+      ) : (
+        <p class="section-subtitle">Release information is currently unavailable.</p>
+      )}
+
+      <div class="btn-group" style="justify-content:flex-start;margin-bottom:var(--space-xl);">
+        <a href={releaseUrl} class="btn btn-secondary" target="_blank" rel="noopener">View latest release on GitHub</a>
+      </div>
+
+      <h3 style="font-size:1.1rem;margin-bottom:var(--space-md);">Verify your download</h3>
+      <p style="font-size:0.9rem;color:var(--color-muted);margin-bottom:var(--space-md);">Always verify the checksum after downloading to ensure file integrity.</p>
+
+      <p style="font-size:0.9rem;font-weight:600;margin-bottom:var(--space-xs);">Windows (PowerShell):</p>
+      <div class="code-block"><code>Get-FileHash .\EasyBackupManager-Setup-{version || '&lt;version&gt;'}.exe -Algorithm SHA256</code></div>
+
+      <p style="font-size:0.9rem;font-weight:600;margin-bottom:var(--space-xs);">Linux:</p>
+      <div class="code-block"><code>sha256sum EasyBackupManager-{version || '&lt;version&gt;'}.AppImage</code></div>
+
+      <p style="font-size:0.85rem;color:var(--color-muted);margin-top:var(--space-md);">Compare the output to the checksum shown above or in the <code>SHA256SUMS.txt</code> file from the release.</p>
+    </div>
+  </section>
+</BaseLayout>
+

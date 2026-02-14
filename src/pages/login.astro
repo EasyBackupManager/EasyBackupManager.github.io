@@ -1,0 +1,109 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { AUTH_CREDENTIALS } from '../lib/auth';
+
+const title = 'Admin login — EasyBackupManager';
+const description = 'Login to access the EasyBackupManager site.';
+// Build a { username: hash } map so only hashes reach the client
+const credMap: Record<string, string> = {};
+for (const c of AUTH_CREDENTIALS) {
+  credMap[c.username] = c.passwordHash;
+}
+const serverVarsJson = JSON.stringify({ users: credMap });
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="login-box">
+    <h2>Login</h2>
+    <form id="login-form" style="display:flex;flex-direction:column;gap:12px;">
+      <div class="user-box">
+        <input id="username" name="username" required autocomplete="username" />
+        <label>Username</label>
+      </div>
+
+      <div class="user-box">
+        <input id="password" name="password" type="password" required autocomplete="current-password" />
+        <label>Password</label>
+      </div>
+
+      <a href="#" id="submit-link">Sign in</a>
+
+      <div id="error" style="color:var(--color-danger);display:none;margin-top:8px;"></div>
+    </form>
+  </div>
+
+  <script type="application/json" id="ebm-server-vars" set:html={serverVarsJson}></script>
+
+  <script is:inline>
+    const __sv = JSON.parse(document.getElementById('ebm-server-vars').textContent || '{}');
+    const USERS = __sv.users || {};
+
+    async function sha256hex(str) {
+      var enc = new TextEncoder();
+      var data = enc.encode(str);
+      var buf = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      var user = (document.getElementById('username').value || '').trim();
+      var pass = document.getElementById('password').value || '';
+      var errEl = document.getElementById('error');
+      errEl.style.display = 'none';
+
+      try {
+        var expectedHash = USERS[user];
+        if (expectedHash) {
+          var h = await sha256hex(pass);
+          if (h === expectedHash) {
+            sessionStorage.setItem('ebm_auth', '1');
+            var params = new URLSearchParams(location.search);
+            var redirect = params.get('redirect') || '/';
+            location.href = redirect;
+            return;
+          }
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      errEl.textContent = 'Invalid credentials.';
+      errEl.style.display = 'block';
+    });
+
+    // If the page uses an anchor as the visible submit control, wire it to requestSubmit()
+    var submitLink = document.getElementById('submit-link');
+    if (submitLink) {
+      submitLink.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        var form = document.getElementById('login-form');
+        if (form && typeof form.requestSubmit === 'function') form.requestSubmit();
+        else if (form) form.submit();
+      });
+    }
+
+    // Enter-key behavior: Enter on username -> focus password; Enter on password -> submit
+    var usernameEl = document.getElementById('username');
+    var passwordEl = document.getElementById('password');
+    if (usernameEl) {
+      usernameEl.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          if (passwordEl) passwordEl.focus();
+        }
+      });
+    }
+
+    if (passwordEl) {
+      passwordEl.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          var form = document.getElementById('login-form');
+          if (form && typeof form.requestSubmit === 'function') form.requestSubmit();
+          else if (form) form.submit();
+        }
+      });
+    }
+  </script>
+</BaseLayout>

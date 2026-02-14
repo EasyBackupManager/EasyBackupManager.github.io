@@ -1,0 +1,21 @@
+{
+  "version": "0.1.0",
+  "released_at": "2025-01-01",
+  "release_url": "https://EasyBackupManager/releases/tag/v0.1.0",
+  "assets": {
+    "windows_exe": {
+      "name": "EasyBackupManager-Setup-0.1.0.exe",
+      "url": "https://EasyBackupManager/releases/download/v0.1.0/EasyBackupManager-Setup-0.1.0.exe",
+      "sha256": ""
+    },
+    "linux_appimage": {
+      "name": "EasyBackupManager-0.1.0.AppImage",
+      "url": "https://EasyBackupManager/releases/download/v0.1.0/EasyBackupManager-0.1.0.AppImage",
+      "sha256": ""
+    },
+    "sha256sums": {
+      "name": "SHA256SUMS.txt",
+      "url": "https://EasyBackupManager/releases/download/v0.1.0/SHA256SUMS.txt"
+    }
+  }
+}
