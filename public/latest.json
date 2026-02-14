@@ -6,7 +6,7 @@
   "files": {
     "windows": {
       "name": "EbmSetup.exe",
-      "sha256": "sha256:445d6517776107721a1887dc7aec5347d676e523dee71d8eb9518082f372ea78"
+      "sha256": "445d6517776107721a1887dc7aec5347d676e523dee71d8eb9518082f372ea78"
     },
     "linux": {
       "name": "EasyBackupManager.AppImage",

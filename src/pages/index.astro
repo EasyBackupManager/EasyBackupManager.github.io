@@ -62,7 +62,7 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
       <span class="badge">Fast &amp; performant</span>
     </p>
     <div class="btn-group">
-      <a href="/#download" class="btn btn-primary">Download EBM</a>
+      <a href="/download" class="btn btn-primary">Download EBM</a>
       <a href="https://github.com/EasyBackupManager/EasyBackupManager.github.io/releases" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
     </div>
   </section>
@@ -197,95 +197,7 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
     </div>
   </section>
 
-  <!-- ===== 8. DOWNLOAD ===== -->
-  <section class="section" id="download">
-    <div class="container">
-      <h2 class="section-title">Download EasyBackupManager</h2>
-
-      {hasRelease ? (
-        <Fragment>
-          <p class="section-subtitle">Latest version: <strong>v{version}</strong> &mdash; released {latestRelease.released_at}</p>
-
-          <div class="download-assets">
-            {winFile && (
-              <div class="download-asset">
-                <div class="os-label">Windows</div>
-                <div class="filename">{winFile.name}</div>
-                <a href={winUrl} class="btn btn-primary">Download for Windows</a>
-                <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="windows" data-name={winFile.name} data-sha={winFile.sha256}>Download checksum file</button>
-                {winFile.sha256 && (
-                  <Fragment>
-                    <div class="checksum-label">SHA256</div>
-                    <div class="checksum-value">{winFile.sha256}</div>
-                    <p style="font-size:0.9rem;margin-top:var(--space-sm);">Full verification instructions<br/><a href="/verify/windows">Windows verification guide</a></p>
-                  </Fragment>
-                )}
-              </div>
-            )}
-            {linuxFile && (
-              <div class="download-asset">
-                <div class="os-label">Linux</div>
-                <div class="filename">{linuxFile.name}</div>
-                <a href={linuxUrl} class="btn btn-primary">Download for Linux</a>
-                <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="linux" data-name={linuxFile.name} data-sha={linuxFile.sha256}>Download checksum file</button>
-                {linuxFile.sha256 && (
-                  <Fragment>
-                    <div class="checksum-label">SHA256</div>
-                    <div class="checksum-value">{linuxFile.sha256}</div>
-                    <p style="font-size:0.9rem;margin-top:var(--space-sm);">Full verification instructions<br/><a href="/verify/linux">Linux verification guide</a></p>
-                  </Fragment>
-                )}
-              </div>
-            )}
-          </div>
-
-        </Fragment>
-      ) : (
-        <p class="section-subtitle">Release information is currently unavailable.</p>
-      )}
-  
-    </div>
-  </section>
+  <!-- Download section moved to /download -->
 </BaseLayout>
 
-<script>
-function normalizeSha(s) {
-  if (!s) return '';
-  return String(s).replace(/^sha256:/i, '');
-}
-
-function generateSumsFromElement(el) {
-  try {
-    if(!el) return;
-    var name = el.getAttribute('data-name');
-    var sha = normalizeSha(el.getAttribute('data-sha') || '');
-    if(!name) return alert('File name missing');
-    var content = sha + '  ' + name + '\n';
-    var blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'SHA256SUMS.txt';
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
-  } catch(e) {
-    console.error(e);
-    alert('Failed to generate checksum file');
-  }
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-  try {
-    document.querySelectorAll('button[data-sha], button[data-name]').forEach(function (btn) {
-      if (btn._ebmAttached) return;
-      btn.addEventListener('click', function () { generateSumsFromElement(btn); });
-      btn._ebmAttached = true;
-    });
-  } catch (e) {
-    console.error('EBM checksum attach failed', e);
-  }
-});
-</script>
 

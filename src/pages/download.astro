@@ -1,0 +1,140 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import latestRelease from '../../public/latest.json';
+
+const title = 'Download EasyBackupManager';
+const description = 'Download the latest EasyBackupManager releases and checksums.';
+
+const hasRelease = latestRelease?.version && latestRelease?.files;
+const version = latestRelease?.version ?? '';
+const tag = latestRelease?.tag ?? '';
+const repoBase = latestRelease?.repo_base_url ?? 'https://github.com/EasyBackupManager/EasyBackupManager.github.io/';
+const winFile = latestRelease?.files?.windows;
+const linuxFile = latestRelease?.files?.linux;
+
+const makeReleaseUrl = (repo, tag) => {
+  if (!repo) return '';
+  if (!tag) return repo;
+  try {
+    if (repo.includes('/releases/tag')) {
+      return repo.endsWith('/') ? `${repo}${tag}` : `${repo}/${tag}`;
+    }
+    if (repo.endsWith('/')) return `${repo}releases/tag/${tag}`;
+    return `${repo}/releases/tag/${tag}`;
+  } catch (e) {
+    return repo;
+  }
+};
+
+const makeDownloadUrl = (repo, tag, filename) => {
+  if (!repo || !tag || !filename) return '';
+  try {
+    if (repo.includes('/releases/download')) {
+      return repo.endsWith('/') ? `${repo}${tag}/${filename}` : `${repo}/${tag}/${filename}`;
+    }
+    if (repo.includes('/releases/tag')) {
+      const base = repo.replace('/releases/tag', '/releases/download').replace(/\/$/, '');
+      return `${base}/${tag}/${filename}`;
+    }
+    return repo.endsWith('/') ? `${repo}releases/download/${tag}/${filename}` : `${repo}/releases/download/${tag}/${filename}`;
+  } catch (e) {
+    return '';
+  }
+};
+
+const winUrl = makeDownloadUrl(repoBase, tag, winFile?.name);
+const linuxUrl = makeDownloadUrl(repoBase, tag, linuxFile?.name);
+const releaseUrl = makeReleaseUrl(repoBase, tag);
+---
+
+<BaseLayout title={title} description={description} version={version}>
+  <section class="section" id="download">
+    <div class="container">
+      <h2 class="section-title">Download EasyBackupManager</h2>
+
+      {hasRelease ? (
+        <Fragment>
+          <p class="section-subtitle">Latest version: <strong>v{version}</strong> &mdash; released {latestRelease.released_at}</p>
+
+          <div class="download-assets">
+            {winFile && (
+              <div class="download-asset">
+                <div class="os-label">Windows</div>
+                <div class="filename">{winFile.name}</div>
+                <a href={winUrl} class="btn btn-primary">Download for Windows</a>
+                <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="windows" data-name={winFile.name} data-sha={winFile.sha256}>Download checksum file</button>
+                {winFile.sha256 && (
+                  <Fragment>
+                    <div class="checksum-label">SHA256</div>
+                    <div class="checksum-value">{winFile.sha256}</div>
+                    <a href="/verify/windows">Full verification instructions (Windows)</a>
+                  </Fragment>
+                )}
+              </div>
+            )}
+            {linuxFile && (
+              <div class="download-asset">
+                <div class="os-label">Linux</div>
+                <div class="filename">{linuxFile.name}</div>
+                <a href={linuxUrl} class="btn btn-primary">Download for Linux</a>
+                <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="linux" data-name={linuxFile.name} data-sha={linuxFile.sha256}>Download checksum file</button>
+                {linuxFile.sha256 && (
+                  <Fragment>
+                    <div class="checksum-label">SHA256</div>
+                    <div class="checksum-value">{linuxFile.sha256}</div>
+                    <a href="/verify/linux">Full verification instructions (Linux)</a>
+                  </Fragment>
+                )}
+              </div>
+            )}
+          </div>
+
+        </Fragment>
+      ) : (
+        <p class="section-subtitle">Release information is currently unavailable.</p>
+      )}
+  
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+function normalizeSha(s) {
+  if (!s) return '';
+  return String(s).replace(/^sha256:/i, '');
+}
+
+function generateSumsFromElement(el) {
+  try {
+    if(!el) return;
+    var name = el.getAttribute('data-name');
+    var sha = normalizeSha(el.getAttribute('data-sha') || '');
+    if(!name) return alert('File name missing');
+    var content = sha + '  ' + name + '\n';
+    var blob = new Blob([content], {type: 'text/plain;charset=utf-8'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'SHA256SUMS.txt';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1500);
+  } catch(e) {
+    console.error(e);
+    alert('Failed to generate checksum file');
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  try {
+    document.querySelectorAll('button[data-sha], button[data-name]').forEach(function (btn) {
+      if (btn._ebmAttached) return;
+      btn.addEventListener('click', function () { generateSumsFromElement(btn); });
+      btn._ebmAttached = true;
+    });
+  } catch (e) {
+    console.error('EBM checksum attach failed', e);
+  }
+});
+</script>
