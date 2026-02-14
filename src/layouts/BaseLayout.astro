@@ -5,6 +5,8 @@ export interface Props {
   version?: string;
 }
 
+import { AUTH_ENABLED } from '../lib/auth';
+
 const { title, description, version } = Astro.props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 const ogImage = new URL('/og-image.png', Astro.site);
@@ -99,22 +101,24 @@ const schema = {
         document.documentElement.setAttribute('data-theme', t);
       })();
     </script>
-      <script is:inline>
-        (function(){
-          // Site-wide client-side gate: if not authenticated, redirect to /login
-          // Authentication is stored in sessionStorage so it clears when the tab is closed.
-          try {
-            var authKey = 'ebm_auth';
-            var p = location.pathname.replace(/\/+$/, '') || '/';
-            if (p === '/login' || p === '/') return;
-            if (!sessionStorage.getItem(authKey)) {
-              location.replace('/login?redirect=' + encodeURIComponent(p));
+      {AUTH_ENABLED ? (
+        <script is:inline>
+          (function(){
+            // Site-wide client-side gate: if not authenticated, redirect to /login
+            // Authentication is stored in sessionStorage so it clears when the tab is closed.
+            try {
+              var authKey = 'ebm_auth';
+              var p = location.pathname.replace(/\/+$/, '') || '/';
+              if (p === '/login' || p === '/') return;
+              if (!sessionStorage.getItem(authKey)) {
+                location.replace('/login?redirect=' + encodeURIComponent(p));
+              }
+            } catch (e) {
+              // ignore errors
             }
-          } catch (e) {
-            // ignore errors
-          }
-        })();
-      </script>
+          })();
+        </script>
+      ) : null}
   </head>
   <body>
     <header class="site-header">

@@ -25,4 +25,6 @@ export const AUTH_CREDENTIALS: UserCredential[] = raw
     };
   });
 
-export default { AUTH_CREDENTIALS };
+export const AUTH_ENABLED = AUTH_CREDENTIALS.length > 0;
+
+export default { AUTH_CREDENTIALS, AUTH_ENABLED };
