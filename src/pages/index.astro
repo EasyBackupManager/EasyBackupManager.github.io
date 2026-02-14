@@ -8,10 +8,9 @@ const description = 'EasyBackupManager (EBM) is a free, open-source desktop back
 const hasRelease = latestRelease?.version && latestRelease?.files;
 const version = latestRelease?.version ?? '';
 const tag = latestRelease?.tag ?? '';
-const repoBase = latestRelease?.repo_base_url ?? 'https://github.com/EasyBackupManager/EasyBackupManager';
+const repoBase = latestRelease?.repo_base_url ?? 'https://github.com/EasyBackupManager/EasyBackupManager.github.io/';
 const winFile = latestRelease?.files?.windows;
 const linuxFile = latestRelease?.files?.linux;
-const sums = latestRelease?.files?.sha256sums;
 
 const makeReleaseUrl = (repo, tag) => {
   if (!repo) return '';
@@ -218,7 +217,7 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
                   <Fragment>
                     <div class="checksum-label">SHA256</div>
                     <div class="checksum-value">{winFile.sha256}</div>
-                    <p style="font-size:0.9rem;margin-top:var(--space-sm);">Full verification instructions: <a href="/verify/windows">Windows verification guide</a></p>
+                    <p style="font-size:0.9rem;margin-top:var(--space-sm);">Full verification instructions<br/><a href="/verify/windows">Windows verification guide</a></p>
                   </Fragment>
                 )}
               </div>
@@ -233,7 +232,7 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
                   <Fragment>
                     <div class="checksum-label">SHA256</div>
                     <div class="checksum-value">{linuxFile.sha256}</div>
-                    <p style="font-size:0.9rem;margin-top:var(--space-sm);">Full verification instructions: <a href="/verify/linux">Linux verification guide</a></p>
+                    <p style="font-size:0.9rem;margin-top:var(--space-sm);">Full verification instructions<br/><a href="/verify/linux">Linux verification guide</a></p>
                   </Fragment>
                 )}
               </div>
