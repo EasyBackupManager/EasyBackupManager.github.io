@@ -106,7 +106,7 @@ const schema = {
           try {
             var authKey = 'ebm_auth';
             var p = location.pathname.replace(/\/+$/, '') || '/';
-            if (p === '/login') return;
+            if (p === '/login' || p === '/') return;
             if (!sessionStorage.getItem(authKey)) {
               location.replace('/login?redirect=' + encodeURIComponent(p));
             }

@@ -48,6 +48,14 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
 ---
 
 <BaseLayout title={title} description={description} version={version}>
+  <!-- ===== UNDER CONSTRUCTION (not logged in) ===== -->
+  <div id="under-construction" style="display:none;min-height:80vh;flex-direction:column;align-items:center;justify-content:center;padding:2rem;">
+    <img src="/images/under_construction.png" alt="Under Construction" style="max-width:420px;width:100%;height:auto;" />
+    <a href="/login" class="btn btn-primary" style="margin-top:2rem;font-size:1.1rem;padding:0.75rem 2.5rem;">Login</a>
+  </div>
+
+  <!-- ===== MAIN CONTENT (logged in) ===== -->
+  <div id="main-content" style="display:none;">
   <!-- ===== 1. HERO ===== -->
   <section class="hero container">
     <img src="/logo.svg" alt="EasyBackupManager logo" class="hero-logo" width="96" height="96" />
@@ -198,6 +206,22 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
   </section>
 
   <!-- Download section moved to /download -->
+  </div><!-- end #main-content -->
+
+  <script is:inline>
+    (function () {
+      var authed = sessionStorage.getItem('ebm_auth') === '1';
+      var uc = document.getElementById('under-construction');
+      var mc = document.getElementById('main-content');
+      if (authed) {
+        uc.style.display = 'none';
+        mc.style.display = 'block';
+      } else {
+        uc.style.display = 'flex';
+        mc.style.display = 'none';
+      }
+    })();
+  </script>
 </BaseLayout>
 
 
