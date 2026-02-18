@@ -46,6 +46,7 @@ const schema = {
   },
   programmingLanguage: 'C++'
 };
+const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
 ---
 
 <!DOCTYPE html>
@@ -83,7 +84,7 @@ const schema = {
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage.href} />
 
-    <script type="application/ld+json">{JSON.stringify(schema)}</script>
+    <script type="application/ld+json" set:html={schemaJson}></script>
 
     <link rel="stylesheet" href="/styles/global.css" />
     <!-- Google tag (gtag.js) -->
