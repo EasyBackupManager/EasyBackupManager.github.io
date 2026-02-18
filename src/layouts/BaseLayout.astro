@@ -109,10 +109,10 @@ const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
             // Authentication is stored in sessionStorage so it clears when the tab is closed.
             try {
               var authKey = 'ebm_auth';
-              var p = location.pathname.replace(/\/+$/, '') || '/';
-              if (p === '/login' || p === '/') return;
+              var p = location.pathname || '/';
+              if (p === '/login' || p === '/login/' || p === '/') return;
               if (!sessionStorage.getItem(authKey)) {
-                location.replace('/login?redirect=' + encodeURIComponent(p));
+                location.replace('/login/?redirect=' + encodeURIComponent(p));
               }
             } catch (e) {
               // ignore errors
@@ -129,10 +129,10 @@ const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
           <span class="logo-text">EasyBackupManager</span>
         </a>
         <nav class="main-nav">
-          <a href="/download">Download</a>
-          <a href="/privacy">Privacy</a>
+          <a href="/download/">Download</a>
+          <a href="/privacy/">Privacy</a>
           <a href="https://mastodon.social/@ebm" target="_blank" rel="noopener me">Mastodon</a>
-          <a href="/login" id="logout-link" style="display:none;">Logout</a>
+          <a href="/login/" id="logout-link" style="display:none;">Logout</a>
           <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Toggle dark/light theme">
             <span id="theme-icon"></span>
           </button>
@@ -150,7 +150,7 @@ const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
               logout.addEventListener('click', function(e){
                 e.preventDefault();
                 sessionStorage.removeItem(authKey);
-                location.href = '/login';
+                location.href = '/login/';
               });
             }
           } catch (e) {}
@@ -185,7 +185,7 @@ const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
       <div class="container footer-inner">
         <p>&copy; {new Date().getFullYear()} EasyBackupManager is Free Software.</p>
         <nav class="footer-nav">
-          <a href="/privacy">Privacy &amp; Telemetry</a>
+          <a href="/privacy/">Privacy &amp; Telemetry</a>
           <a href="https://mastodon.social/@ebm" target="_blank" rel="noopener me">Mastodon</a>
         </nav>
       </div>

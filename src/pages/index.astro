@@ -52,7 +52,7 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
   {AUTH_ENABLED ? (
     <div id="under-construction" style="display:none;min-height:80vh;flex-direction:column;align-items:center;justify-content:center;padding:2rem;">
       <img src="/images/under_construction.png" alt="Under Construction" style="max-width:420px;width:100%;height:auto;" />
-      <a href="/login" class="btn btn-primary" style="margin-top:2rem;font-size:1.1rem;padding:0.75rem 2.5rem;">Login</a>
+      <a href="/login/" class="btn btn-primary" style="margin-top:2rem;font-size:1.1rem;padding:0.75rem 2.5rem;">Login</a>
     </div>
   ) : null}
 
@@ -72,7 +72,7 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
       <span class="badge">Fast &amp; performant</span>
     </p>
     <div class="btn-group">
-      <a href="/download" class="btn btn-primary">Download EBM</a>
+      <a href="/download/" class="btn btn-primary">Download EBM</a>
       <a href="https://github.com/EasyBackupManager/EasyBackupManager.github.io/releases" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
     </div>
   </section>
@@ -163,7 +163,7 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
         </div>
         <div class="card">
           <h3>Telemetry (opt-out)</h3>
-          <p>EBM includes minimal, <strong>opt-out</strong> telemetry: anonymous usage counters and crash reports. It is <strong>off by default</strong> and can be disabled in Settings. No file contents, backup data, or credentials are ever collected. <a href="/privacy">Read the full policy&nbsp;&rarr;</a></p>
+          <p>EBM includes minimal, <strong>opt-out</strong> telemetry: anonymous usage counters and crash reports. It is <strong>off by default</strong> and can be disabled in Settings. No file contents, backup data, or credentials are ever collected. <a href="/privacy/">Read the full policy&nbsp;&rarr;</a></p>
         </div>
       </div>
 
@@ -227,5 +227,4 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
     </script>
   ) : null}
 </BaseLayout>
-
 
