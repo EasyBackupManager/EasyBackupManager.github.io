@@ -2,6 +2,8 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import latestRelease from '../../public/latest.json';
 import { AUTH_ENABLED } from '../lib/auth';
+import { readdirSync } from 'node:fs';
+import { extname, basename } from 'node:path';
 
 const title = 'EasyBackupManager — Set-and-forget backups with reliable restore';
 const description = 'EasyBackupManager (EBM) is a free desktop backup app for Windows and Linux. A fast, performant C++ GUI wrapper for restic — privacy-friendly, secure, and easy to use for reliable backups and restores.';
@@ -45,6 +47,30 @@ const makeDownloadUrl = (repo, tag, filename) => {
 const winUrl = makeDownloadUrl(repoBase, tag, winFile?.name);
 const linuxUrl = makeDownloadUrl(repoBase, tag, linuxFile?.name);
 const releaseUrl = makeReleaseUrl(repoBase, tag);
+
+const screenshotDir = new URL('../../public/screenshots/', import.meta.url);
+let screenshots = [];
+try {
+  screenshots = readdirSync(screenshotDir, { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => {
+      const extension = extname(entry.name);
+      const stem = basename(entry.name, extension);
+      const order = Number.parseInt(stem, 10);
+      return {
+        name: entry.name,
+        order,
+        stem,
+        hasExtension: extension.length > 1,
+        isNumbered: /^\d+$/.test(stem),
+      };
+    })
+    .filter((item) => item.hasExtension && item.isNumbered && Number.isFinite(item.order))
+    .sort((a, b) => a.order - b.order)
+    .map((item) => `/screenshots/${item.name}`);
+} catch {
+  screenshots = [];
+}
 ---
 
 <BaseLayout title={title} description={description} version={version}>
@@ -74,6 +100,60 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
     <div class="btn-group">
       <a href="/download/" class="btn btn-primary">Download EBM</a>
       <a href="https://github.com/EasyBackupManager/EasyBackupManager.github.io/releases" target="_blank" rel="noopener" class="btn btn-secondary">View on GitHub</a>
+    </div>
+  </section>
+
+  <!-- ===== 2. INTERFACE PREVIEW ===== -->
+  <section class="section-alt">
+    <div class="container">
+      <h2 class="section-title">Interface preview</h2>
+      <p class="section-subtitle">Clean, focused, and built for clarity. Here's what EBM looks like in action.</p>
+      {screenshots.length > 0 ? (
+        <Fragment>
+          <div class="screenshot-carousel" id="screenshot-carousel" aria-label="Interface preview carousel">
+            <button class="carousel-arrow" type="button" data-action="prev" aria-label="Previous screenshot">&larr;</button>
+            <div class="carousel-viewport">
+              <div class="carousel-track">
+                {screenshots.map((src, idx) => (
+                  <button
+                    type="button"
+                    class={`carousel-slide ${idx === 0 ? 'is-active' : ''}`}
+                    data-index={idx}
+                    data-src={src}
+                    aria-label={`Open screenshot ${idx + 1} in fullscreen`}
+                  >
+                    <img src={src} alt={`EBM interface preview ${idx + 1}`} loading={idx === 0 ? 'eager' : 'lazy'} decoding="async" />
+                  </button>
+                ))}
+              </div>
+            </div>
+            <button class="carousel-arrow" type="button" data-action="next" aria-label="Next screenshot">&rarr;</button>
+          </div>
+
+          <div class="carousel-dots" id="screenshot-dots" aria-label="Carousel pagination">
+            {screenshots.map((_, idx) => (
+              <button
+                type="button"
+                class={`carousel-dot ${idx === 0 ? 'is-active' : ''}`}
+                data-index={idx}
+                aria-label={`Go to screenshot ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+          <div class="screenshot-lightbox" id="screenshot-lightbox" hidden role="dialog" aria-modal="true" aria-label="Screenshot viewer">
+            <button class="lightbox-close" type="button" data-action="close" aria-label="Close fullscreen view">&times;</button>
+            <button class="lightbox-arrow" type="button" data-action="prev" aria-label="Previous screenshot">&larr;</button>
+            <figure class="lightbox-figure">
+              <img id="lightbox-image" alt="" />
+              <figcaption id="lightbox-caption"></figcaption>
+            </figure>
+            <button class="lightbox-arrow" type="button" data-action="next" aria-label="Next screenshot">&rarr;</button>
+          </div>
+        </Fragment>
+      ) : (
+        <p class="section-subtitle">No screenshots found. Add files in `public/screenshots/` named 1, 2, 3, ... (any image extension).</p>
+      )}
     </div>
   </section>
 
@@ -195,20 +275,148 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
     </div>
   </section>
 
-  <!-- ===== 7. INTERFACE PREVIEW ===== -->
-  <section class="section-alt">
-    <div class="container">
-      <h2 class="section-title">Interface preview</h2>
-      <p class="section-subtitle">Clean, focused, and built for clarity. Here's what EBM looks like in action.</p>
-      <div class="screenshot-grid">
-        <img src="/screenshots/backup-view.svg" alt="EBM backup view" loading="lazy" />
-        <img src="/screenshots/restore-view.svg" alt="EBM restore view" loading="lazy" />
-      </div>
-    </div>
-  </section>
-
   <!-- Download section moved to /download -->
   </div><!-- end #main-content -->
+
+  <script is:inline>
+    (function () {
+      var carousel = document.getElementById('screenshot-carousel');
+      if (!carousel) return;
+
+      var track = carousel.querySelector('.carousel-track');
+      var slides = Array.from(carousel.querySelectorAll('.carousel-slide'));
+      var dotsRoot = document.getElementById('screenshot-dots');
+      var dots = dotsRoot ? Array.from(dotsRoot.querySelectorAll('.carousel-dot')) : [];
+      var prevBtn = carousel.querySelector('[data-action="prev"]');
+      var nextBtn = carousel.querySelector('[data-action="next"]');
+
+      var lightbox = document.getElementById('screenshot-lightbox');
+      var lightboxImage = document.getElementById('lightbox-image');
+      var lightboxCaption = document.getElementById('lightbox-caption');
+      var closeBtn = lightbox ? lightbox.querySelector('[data-action="close"]') : null;
+      var lightboxPrev = lightbox ? lightbox.querySelector('[data-action="prev"]') : null;
+      var lightboxNext = lightbox ? lightbox.querySelector('[data-action="next"]') : null;
+
+      if (!track || slides.length === 0) return;
+
+      var activeIndex = 0;
+      var isLightboxOpen = false;
+
+      function wrapIndex(index) {
+        if (slides.length === 0) return 0;
+        return (index + slides.length) % slides.length;
+      }
+
+      function render() {
+        track.style.transform = 'translateX(-' + activeIndex * 100 + '%)';
+        slides.forEach(function (slide, idx) {
+          slide.classList.toggle('is-active', idx === activeIndex);
+        });
+        dots.forEach(function (dot, idx) {
+          dot.classList.toggle('is-active', idx === activeIndex);
+        });
+      }
+
+      function setActive(index) {
+        activeIndex = wrapIndex(index);
+        render();
+      }
+
+      function openLightbox(index) {
+        if (!lightbox || !lightboxImage) return;
+        setActive(index);
+        var src = slides[activeIndex].getAttribute('data-src') || '';
+        lightboxImage.src = src;
+        lightboxImage.alt = 'EBM interface preview ' + (activeIndex + 1);
+        if (lightboxCaption) {
+          lightboxCaption.textContent = 'Screenshot ' + (activeIndex + 1) + ' of ' + slides.length;
+        }
+        lightbox.hidden = false;
+        document.body.style.overflow = 'hidden';
+        isLightboxOpen = true;
+      }
+
+      function closeLightbox() {
+        if (!lightbox || !lightboxImage) return;
+        lightbox.hidden = true;
+        lightboxImage.removeAttribute('src');
+        document.body.style.overflow = '';
+        isLightboxOpen = false;
+      }
+
+      function step(delta) {
+        setActive(activeIndex + delta);
+        if (!isLightboxOpen || !lightboxImage) return;
+        var src = slides[activeIndex].getAttribute('data-src') || '';
+        lightboxImage.src = src;
+        lightboxImage.alt = 'EBM interface preview ' + (activeIndex + 1);
+        if (lightboxCaption) {
+          lightboxCaption.textContent = 'Screenshot ' + (activeIndex + 1) + ' of ' + slides.length;
+        }
+      }
+
+      if (prevBtn) {
+        prevBtn.addEventListener('click', function () {
+          step(-1);
+        });
+      }
+
+      if (nextBtn) {
+        nextBtn.addEventListener('click', function () {
+          step(1);
+        });
+      }
+
+      slides.forEach(function (slide, idx) {
+        slide.addEventListener('click', function () {
+          if (idx === activeIndex) {
+            openLightbox(idx);
+          } else {
+            setActive(idx);
+          }
+        });
+      });
+
+      dots.forEach(function (dot, idx) {
+        dot.addEventListener('click', function () {
+          setActive(idx);
+        });
+      });
+
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function () {
+          closeLightbox();
+        });
+      }
+
+      if (lightboxPrev) {
+        lightboxPrev.addEventListener('click', function () {
+          step(-1);
+        });
+      }
+
+      if (lightboxNext) {
+        lightboxNext.addEventListener('click', function () {
+          step(1);
+        });
+      }
+
+      if (lightbox) {
+        lightbox.addEventListener('click', function (e) {
+          if (e.target === lightbox) closeLightbox();
+        });
+      }
+
+      document.addEventListener('keydown', function (e) {
+        if (!isLightboxOpen) return;
+        if (e.key === 'Escape') closeLightbox();
+        if (e.key === 'ArrowLeft') step(-1);
+        if (e.key === 'ArrowRight') step(1);
+      });
+
+      render();
+    })();
+  </script>
 
   {AUTH_ENABLED ? (
     <script is:inline>
