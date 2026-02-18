@@ -65,8 +65,7 @@ const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
     <link rel="canonical" href={canonicalURL.href} />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" href="/images/favicon.png" />
 
     <!-- OpenGraph -->
     <meta property="og:type" content="website" />
@@ -98,7 +97,7 @@ const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
     <script is:inline>
       (function() {
         var t = localStorage.getItem('theme');
-        if (!t) t = 'light';
+        if (!t) t = 'dark';
         document.documentElement.setAttribute('data-theme', t);
       })();
     </script>
@@ -125,7 +124,7 @@ const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
     <header class="site-header">
       <div class="container header-inner">
         <a href="/" class="logo-link">
-          <img src="/logo.svg" alt="EasyBackupManager logo" class="logo-img" width="36" height="36" />
+          <img src="/images/logo.png" alt="EasyBackupManager logo" class="logo-img" width="36" height="36" />
           <span class="logo-text">EasyBackupManager</span>
         </a>
         <nav class="main-nav">
