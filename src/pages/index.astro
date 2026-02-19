@@ -2,7 +2,7 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import latestRelease from '../../public/latest.json';
 import { AUTH_ENABLED } from '../lib/auth';
-import { readdirSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { extname, basename } from 'node:path';
 
 const title = 'EasyBackupManager — Set-and-forget backups with reliable restore';
@@ -48,26 +48,69 @@ const winUrl = makeDownloadUrl(repoBase, tag, winFile?.name);
 const linuxUrl = makeDownloadUrl(repoBase, tag, linuxFile?.name);
 const releaseUrl = makeReleaseUrl(repoBase, tag);
 
+const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==';
+
+const readPngDimensions = (fileUrl) => {
+  try {
+    const bytes = readFileSync(fileUrl);
+    if (bytes.length < 24) return null;
+
+    const isPng =
+      bytes[0] === 0x89 &&
+      bytes[1] === 0x50 &&
+      bytes[2] === 0x4e &&
+      bytes[3] === 0x47;
+
+    if (!isPng) return null;
+
+    const width = bytes.readUInt32BE(16);
+    const height = bytes.readUInt32BE(20);
+    if (!width || !height) return null;
+    return { width, height };
+  } catch {
+    return null;
+  }
+};
+
 const screenshotDir = new URL('../../public/screenshots/', import.meta.url);
 let screenshots = [];
 try {
-  screenshots = readdirSync(screenshotDir, { withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .map((entry) => {
-      const extension = extname(entry.name);
-      const stem = basename(entry.name, extension);
-      const order = Number.parseInt(stem, 10);
-      return {
-        name: entry.name,
-        order,
-        stem,
-        hasExtension: extension.length > 1,
-        isNumbered: /^\d+$/.test(stem),
-      };
-    })
-    .filter((item) => item.hasExtension && item.isNumbered && Number.isFinite(item.order))
+  const byOrder = new Map();
+  for (const entry of readdirSync(screenshotDir, { withFileTypes: true })) {
+    if (!entry.isFile()) continue;
+
+    const extension = extname(entry.name).toLowerCase();
+    const stem = basename(entry.name, extension);
+    if (extension.length <= 1 || !/^\d+$/.test(stem)) continue;
+
+    const order = Number.parseInt(stem, 10);
+    if (!Number.isFinite(order)) continue;
+
+    const existing = byOrder.get(order) ?? { order, variants: new Map() };
+    existing.variants.set(extension, entry.name);
+    byOrder.set(order, existing);
+  }
+
+  const preferredFormats = ['.webp', '.avif', '.png', '.jpg', '.jpeg', '.gif'];
+  screenshots = [...byOrder.values()]
     .sort((a, b) => a.order - b.order)
-    .map((item) => `/screenshots/${item.name}`);
+    .map((item) => {
+      const selectedExt =
+        preferredFormats.find((ext) => item.variants.has(ext)) ?? [...item.variants.keys()][0];
+      const selectedName = item.variants.get(selectedExt);
+      const dimensionName = item.variants.get('.png') ?? selectedName;
+      const dimensions =
+        dimensionName && dimensionName.endsWith('.png')
+          ? readPngDimensions(new URL(dimensionName, screenshotDir))
+          : null;
+
+      return {
+        order: item.order,
+        src: `/screenshots/${selectedName}`,
+        width: dimensions?.width ?? undefined,
+        height: dimensions?.height ?? undefined,
+      };
+    });
 } catch {
   screenshots = [];
 }
@@ -86,7 +129,7 @@ try {
   <div id="main-content" style={`display:${AUTH_ENABLED ? 'none' : 'block'};`}>
   <!-- ===== 1. HERO ===== -->
   <section class="hero container">
-    <img src="/images/logo.png" alt="EasyBackupManager logo" class="hero-logo" width="96" height="96" />
+    <img src="/images/logo.svg" alt="EasyBackupManager logo" class="hero-logo" width="96" height="96" />
     <h1>Set-and-forget backups,<br />with reliable restore</h1>
     <p>EasyBackupManager (EBM) wraps the power of <strong>restic</strong> in a clean desktop GUI for <strong>Windows</strong> and <strong>Linux</strong>. EasyBackupManager is Free Software.</p>
     <p class="hero-badges" style="margin-top:var(--space-md);">
@@ -114,15 +157,25 @@ try {
             <button class="carousel-arrow" type="button" data-action="prev" aria-label="Previous screenshot">&larr;</button>
             <div class="carousel-viewport">
               <div class="carousel-track">
-                {screenshots.map((src, idx) => (
+                {screenshots.map((shot, idx) => (
                   <button
                     type="button"
                     class={`carousel-slide ${idx === 0 ? 'is-active' : ''}`}
                     data-index={idx}
-                    data-src={src}
+                    data-src={shot.src}
                     aria-label={`Open screenshot ${idx + 1} in fullscreen`}
                   >
-                    <img src={src} alt={`EBM interface preview ${idx + 1}`} loading={idx === 0 ? 'eager' : 'lazy'} decoding="async" />
+                    <img
+                      src={idx === 0 ? shot.src : transparentPixel}
+                      data-src={shot.src}
+                      data-loaded={idx === 0 ? '1' : '0'}
+                      alt={`EBM interface preview ${idx + 1}`}
+                      loading={idx === 0 ? 'eager' : 'lazy'}
+                      decoding="async"
+                      width={shot.width}
+                      height={shot.height}
+                      fetchpriority={idx === 0 ? 'high' : undefined}
+                    />
                   </button>
                 ))}
               </div>
@@ -307,6 +360,18 @@ try {
         return (index + slides.length) % slides.length;
       }
 
+      function ensureSlideImageLoaded(index) {
+        var resolvedIndex = wrapIndex(index);
+        var slide = slides[resolvedIndex];
+        if (!slide) return;
+        var image = slide.querySelector('img[data-src]');
+        if (!image || image.getAttribute('data-loaded') === '1') return;
+        var src = image.getAttribute('data-src');
+        if (!src) return;
+        image.src = src;
+        image.setAttribute('data-loaded', '1');
+      }
+
       function render() {
         track.style.transform = 'translateX(-' + activeIndex * 100 + '%)';
         slides.forEach(function (slide, idx) {
@@ -315,6 +380,8 @@ try {
         dots.forEach(function (dot, idx) {
           dot.classList.toggle('is-active', idx === activeIndex);
         });
+        ensureSlideImageLoaded(activeIndex);
+        ensureSlideImageLoaded(activeIndex + 1);
       }
 
       function setActive(index) {
@@ -325,6 +392,7 @@ try {
       function openLightbox(index) {
         if (!lightbox || !lightboxImage) return;
         setActive(index);
+        ensureSlideImageLoaded(activeIndex);
         var src = slides[activeIndex].getAttribute('data-src') || '';
         lightboxImage.src = src;
         lightboxImage.alt = 'EBM interface preview ' + (activeIndex + 1);

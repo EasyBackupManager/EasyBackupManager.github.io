@@ -86,13 +86,40 @@ const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
     <script type="application/ld+json" set:html={schemaJson}></script>
 
     <link rel="stylesheet" href="/styles/global.css" />
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-FQHRCVG3C6"></script>
+    <!-- Lazy-load analytics to keep initial rendering lightweight -->
     <script is:inline>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);} 
-      gtag('js', new Date());
-      gtag('config', 'G-FQHRCVG3C6');
+      (function () {
+        var gaId = 'G-FQHRCVG3C6';
+        var loaded = false;
+        var options = { passive: true };
+        var events = ['pointerdown', 'keydown', 'touchstart', 'wheel'];
+
+        function loadAnalytics() {
+          if (loaded) return;
+          loaded = true;
+
+          window.dataLayer = window.dataLayer || [];
+          window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+          window.gtag('js', new Date());
+          window.gtag('config', gaId);
+
+          var script = document.createElement('script');
+          script.async = true;
+          script.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(gaId);
+          document.head.appendChild(script);
+
+          for (var i = 0; i < events.length; i += 1) {
+            window.removeEventListener(events[i], loadAnalytics, options);
+          }
+        }
+
+        for (var i = 0; i < events.length; i += 1) {
+          window.addEventListener(events[i], loadAnalytics, options);
+        }
+
+        // Keep analytics available for long-read sessions without interaction.
+        window.setTimeout(loadAnalytics, 30000);
+      })();
     </script>
     <script is:inline>
       (function() {
@@ -124,7 +151,7 @@ const schemaJson = JSON.stringify(schema).replace(/</g, '\\u003c');
     <header class="site-header">
       <div class="container header-inner">
         <a href="/" class="logo-link">
-          <img src="/images/logo.png" alt="EasyBackupManager logo" class="logo-img" width="36" height="36" />
+          <img src="/images/logo.svg" alt="EasyBackupManager logo" class="logo-img" width="36" height="36" />
           <span class="logo-text">EasyBackupManager</span>
         </a>
         <nav class="main-nav">
