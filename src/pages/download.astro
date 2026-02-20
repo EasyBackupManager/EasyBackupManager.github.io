@@ -45,6 +45,78 @@ const makeDownloadUrl = (repo, tag, filename) => {
 const winUrl = makeDownloadUrl(repoBase, tag, winFile?.name);
 const linuxUrl = makeDownloadUrl(repoBase, tag, linuxFile?.name);
 const releaseUrl = makeReleaseUrl(repoBase, tag);
+
+const parseGitHubRepo = (repoUrl) => {
+  if (!repoUrl) return null;
+  try {
+    const { hostname, pathname } = new URL(repoUrl);
+    if (hostname !== 'github.com') return null;
+    const [owner, repo] = pathname.split('/').filter(Boolean);
+    if (!owner || !repo) return null;
+    return `${owner}/${repo.replace(/\.git$/i, '')}`;
+  } catch (e) {
+    return null;
+  }
+};
+
+const fetchReleaseAssets = async (repoSlug, releaseTag) => {
+  if (!repoSlug) return [];
+
+  const endpoints = releaseTag
+    ? [
+        `https://api.github.com/repos/${repoSlug}/releases/tags/${encodeURIComponent(releaseTag)}`,
+        `https://api.github.com/repos/${repoSlug}/releases/latest`
+      ]
+    : [`https://api.github.com/repos/${repoSlug}/releases/latest`];
+
+  for (const endpoint of endpoints) {
+    try {
+      const response = await fetch(endpoint, {
+        headers: {
+          Accept: 'application/vnd.github+json'
+        }
+      });
+
+      if (!response.ok) continue;
+
+      const release = await response.json();
+      if (Array.isArray(release?.assets)) return release.assets;
+    } catch (e) {
+      // Ignore API failures and fall back to rendering without counts.
+    }
+  }
+
+  return [];
+};
+
+const formatDownloadCount = (count) => {
+  if (!Number.isFinite(count)) return '';
+  return `${new Intl.NumberFormat('en-US').format(count)} downloads`;
+};
+
+const formatCompactDownloadCount = (count) => {
+  if (!Number.isFinite(count)) return '';
+  return new Intl.NumberFormat('en-US', {
+    notation: 'compact',
+    maximumFractionDigits: 1
+  }).format(count);
+};
+
+const downloadCountsByName = {};
+const repoSlug = parseGitHubRepo(repoBase);
+const releaseAssets = hasRelease ? await fetchReleaseAssets(repoSlug, tag) : [];
+
+for (const asset of releaseAssets) {
+  if (!asset?.name) continue;
+  downloadCountsByName[asset.name] = Number(asset.download_count) || 0;
+}
+
+const winDownloadCount = Number(winFile?.name ? downloadCountsByName[winFile.name] : NaN);
+const linuxDownloadCount = Number(linuxFile?.name ? downloadCountsByName[linuxFile.name] : NaN);
+const winDownloadText = formatDownloadCount(winDownloadCount);
+const linuxDownloadText = formatDownloadCount(linuxDownloadCount);
+const winDownloadBadgeValue = formatCompactDownloadCount(winDownloadCount);
+const linuxDownloadBadgeValue = formatCompactDownloadCount(linuxDownloadCount);
 ---
 
 <BaseLayout title={title} description={description} version={version}>
@@ -61,8 +133,32 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
               <div class="download-asset">
                 <div class="os-label">Windows</div>
                 <div class="filename">{winFile.name}</div>
-                <a href={winUrl} class="btn btn-primary">Download for Windows</a>
-                <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="windows" data-name={winFile.name} data-sha={winFile.sha256}>Download checksum file</button>
+                <div class="download-actions">
+                  <div class="download-primary-action">
+                    <a href={winUrl} class="btn btn-primary">Download for Windows</a>
+                    {winDownloadBadgeValue && (
+                      <a
+                        href={releaseUrl || winUrl}
+                        class="github-download-badge"
+                        aria-label={`GitHub ${winDownloadText}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span class="github-download-badge-label">
+                          <svg viewBox="0 0 16 16" aria-hidden="true" class="github-download-badge-icon">
+                            <path
+                              fill="currentColor"
+                              d="M8 0C3.58 0 0 3.58 0 8a8.01 8.01 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52 0-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+                            />
+                          </svg>
+                          github downloads
+                        </span>
+                        <span class="github-download-badge-value">{winDownloadBadgeValue}</span>
+                      </a>
+                    )}
+                  </div>
+                  <button class="btn btn-secondary" type="button" data-platform="windows" data-name={winFile.name} data-sha={winFile.sha256}>Download checksum file</button>
+                </div>
                 {winFile.sha256 && (
                   <Fragment>
                     <div class="checksum-label">SHA256</div>
@@ -76,8 +172,32 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
               <div class="download-asset">
                 <div class="os-label">Linux</div>
                 <div class="filename">{linuxFile.name}</div>
-                <a href={linuxUrl} class="btn btn-primary">Download for Linux</a>
-                <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="linux" data-name={linuxFile.name} data-sha={linuxFile.sha256}>Download checksum file</button>
+                <div class="download-actions">
+                  <div class="download-primary-action">
+                    <a href={linuxUrl} class="btn btn-primary">Download for Linux</a>
+                    {linuxDownloadBadgeValue && (
+                      <a
+                        href={releaseUrl || linuxUrl}
+                        class="github-download-badge"
+                        aria-label={`GitHub ${linuxDownloadText}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <span class="github-download-badge-label">
+                          <svg viewBox="0 0 16 16" aria-hidden="true" class="github-download-badge-icon">
+                            <path
+                              fill="currentColor"
+                              d="M8 0C3.58 0 0 3.58 0 8a8.01 8.01 0 0 0 5.47 7.59c.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52 0-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.5 7.5 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"
+                            />
+                          </svg>
+                          github downloads
+                        </span>
+                        <span class="github-download-badge-value">{linuxDownloadBadgeValue}</span>
+                      </a>
+                    )}
+                  </div>
+                  <button class="btn btn-secondary" type="button" data-platform="linux" data-name={linuxFile.name} data-sha={linuxFile.sha256}>Download checksum file</button>
+                </div>
                 {linuxFile.sha256 && (
                   <Fragment>
                     <div class="checksum-label">SHA256</div>
