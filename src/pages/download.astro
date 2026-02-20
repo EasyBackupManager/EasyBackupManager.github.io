@@ -12,6 +12,49 @@ const repoBase = latestRelease?.repo_base_url ?? 'https://github.com/EasyBackupM
 const winFile = latestRelease?.files?.windows;
 const linuxFile = latestRelease?.files?.linux;
 
+// Fetch download counts from GitHub Releases API at build time.
+// Uses GITHUB_TOKEN env var when available to avoid anonymous rate limits.
+async function fetchDownloadCounts(repoBaseUrl: string, releaseTag: string): Promise<Map<string, number>> {
+  const counts = new Map<string, number>();
+  try {
+    const m = repoBaseUrl.match(/github\.com\/([^/?#]+)\/([^/?#]+)/);
+    if (!m) return counts;
+    const owner = m[1];
+    const repo = m[2].replace(/\/+$/, '');
+    const url = `https://api.github.com/repos/${owner}/${repo}/releases/tags/${releaseTag}`;
+    const headers: Record<string, string> = {
+      Accept: 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28',
+    };
+    const token = import.meta.env.GITHUB_TOKEN;
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const res = await fetch(url, { headers });
+    if (!res.ok) return counts;
+    const data = await res.json();
+    if (Array.isArray(data?.assets)) {
+      for (const asset of data.assets) {
+        if (asset.name && typeof asset.download_count === 'number') {
+          counts.set(asset.name, asset.download_count);
+        }
+      }
+    }
+  } catch {
+    // Silently ignore errors (rate limiting, network issues, etc.)
+  }
+  return counts;
+}
+
+function formatCount(n: number): string {
+  return new Intl.NumberFormat('en-US').format(n);
+}
+
+const downloadCounts = hasRelease && tag
+  ? await fetchDownloadCounts(repoBase, tag)
+  : new Map<string, number>();
+
+const winCount  = winFile  ? downloadCounts.get(winFile.name)  : undefined;
+const linuxCount = linuxFile ? downloadCounts.get(linuxFile.name) : undefined;
+
 const makeReleaseUrl = (repo, tag) => {
   if (!repo) return '';
   if (!tag) return repo;
@@ -63,6 +106,10 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
                 <div class="filename">{winFile.name}</div>
                 <a href={winUrl} class="btn btn-primary">Download for Windows</a>
                 <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="windows" data-name={winFile.name} data-sha={winFile.sha256}>Download checksum file</button>
+                <div class="download-count" aria-label={winCount != null ? `${formatCount(winCount)} downloads` : 'Download count unavailable'}>
+                  <span class="download-count-label">Downloads:</span>
+                  <span class="download-count-value">{winCount != null ? formatCount(winCount) : '—'}</span>
+                </div>
                 {winFile.sha256 && (
                   <Fragment>
                     <div class="checksum-label">SHA256</div>
@@ -78,6 +125,10 @@ const releaseUrl = makeReleaseUrl(repoBase, tag);
                 <div class="filename">{linuxFile.name}</div>
                 <a href={linuxUrl} class="btn btn-primary">Download for Linux</a>
                 <button class="btn btn-secondary" type="button" style="margin-left:0.5rem;" data-platform="linux" data-name={linuxFile.name} data-sha={linuxFile.sha256}>Download checksum file</button>
+                <div class="download-count" aria-label={linuxCount != null ? `${formatCount(linuxCount)} downloads` : 'Download count unavailable'}>
+                  <span class="download-count-label">Downloads:</span>
+                  <span class="download-count-value">{linuxCount != null ? formatCount(linuxCount) : '—'}</span>
+                </div>
                 {linuxFile.sha256 && (
                   <Fragment>
                     <div class="checksum-label">SHA256</div>

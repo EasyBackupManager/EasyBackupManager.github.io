@@ -400,6 +400,9 @@ code {
 .download-asset .filename { font-family: var(--font-mono); font-size: 0.85rem; color: var(--color-muted); margin-bottom: var(--space-md); word-break: break-all; }
 .checksum-label { font-size: 0.8rem; color: var(--color-muted); margin-top: var(--space-sm); }
 .checksum-value { font-family: var(--font-mono); font-size: 0.75rem; word-break: break-all; color: var(--color-muted); }
+.download-count { display: flex; align-items: center; justify-content: center; gap: 0.35em; margin-top: var(--space-sm); font-size: 0.85rem; color: var(--color-muted); }
+.download-count-label { font-weight: 600; }
+.download-count-value { font-variant-numeric: tabular-nums; }
 
 /* --- Badge --- */
 .badge {
