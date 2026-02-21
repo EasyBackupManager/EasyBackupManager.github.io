@@ -15,10 +15,10 @@
         }
       },
       "changes": {
-        "added": ["Additional features and improvements.","Added new backup options."],
-        "changed": ["Changed backup algorithm.","Improved user interface."],
-        "fixed": ["Fixed minor bugs."],
-        "security": ["Fixed download security vulnerabilities.", "Updated security protocols."]
+        "added": ["Check for new updates."],
+        "changed": [""],
+        "fixed": [""],
+        "security": [""]
       }
     },
     {
