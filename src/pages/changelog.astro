@@ -1,0 +1,322 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import latestRelease from '../../public/latest.json';
+import changelogData from '../../public/changelog.json';
+
+const title = 'EasyBackupManager Changelog';
+const description = 'Release history and version metadata for EasyBackupManager.';
+const version = latestRelease?.version ?? '';
+
+const fallbackRepoBase = latestRelease?.repo_base_url ?? 'https://github.com/EasyBackupManager/EasyBackupManager.github.io/';
+const repoBase = changelogData?.repo_base_url ?? fallbackRepoBase;
+const rawEntries = Array.isArray(changelogData?.entries) ? changelogData.entries : [];
+
+const categories = [
+  { key: 'added', label: 'Added' },
+  { key: 'changed', label: 'Changed' },
+  { key: 'fixed', label: 'Fixed' },
+  { key: 'security', label: 'Security' }
+];
+
+const normalizeText = (value) => (typeof value === 'string' ? value.trim() : '');
+const normalizeList = (value) =>
+  Array.isArray(value)
+    ? value.map((item) => normalizeText(item)).filter(Boolean)
+    : [];
+
+const makeDownloadUrl = (repo, releaseRef, filename) => {
+  if (!repo || !releaseRef || !filename) return '';
+  try {
+    if (repo.includes('/releases/download')) {
+      return repo.endsWith('/') ? `${repo}${releaseRef}/${filename}` : `${repo}/${releaseRef}/${filename}`;
+    }
+    if (repo.includes('/releases/tag')) {
+      const base = repo.replace('/releases/tag', '/releases/download').replace(/\/$/, '');
+      return `${base}/${releaseRef}/${filename}`;
+    }
+    return repo.endsWith('/') ? `${repo}releases/download/${releaseRef}/${filename}` : `${repo}/releases/download/${releaseRef}/${filename}`;
+  } catch (e) {
+    return '';
+  }
+};
+
+const parseAsset = (value) => {
+  if (!value || typeof value !== 'object') return null;
+
+  const name = normalizeText(value.name);
+  if (!name) return null;
+
+  return { name };
+};
+
+const normalizeEntry = (entry) => {
+  if (!entry || typeof entry !== 'object') return null;
+
+  const versionValue = normalizeText(entry.version);
+  const cleanVersion = versionValue;
+  if (!cleanVersion) return null;
+  const releaseRef = normalizeText(entry.tag);
+
+  const changesSource = entry?.changes && typeof entry.changes === 'object' ? entry.changes : {};
+  const changes = categories
+    .map((category) => {
+      const items = normalizeList(changesSource[category.key]);
+      return { ...category, items };
+    })
+    .filter((category) => category.items.length > 0);
+
+  const windowsAsset = parseAsset(entry?.files?.windows);
+  const linuxAsset = parseAsset(entry?.files?.linux);
+  const files = [
+    windowsAsset
+      ? {
+          platform: 'Windows',
+          ...windowsAsset,
+          downloadUrl: releaseRef ? makeDownloadUrl(repoBase, releaseRef, windowsAsset.name) : ''
+        }
+      : null,
+    linuxAsset
+      ? {
+          platform: 'Linux',
+          ...linuxAsset,
+          downloadUrl: releaseRef ? makeDownloadUrl(repoBase, releaseRef, linuxAsset.name) : ''
+        }
+      : null
+  ].filter(Boolean);
+
+  return {
+    id: `v-${cleanVersion.replace(/[^0-9A-Za-z._-]+/g, '-')}`,
+    version: cleanVersion,
+    releasedAt: normalizeText(entry.released_at),
+    summary: normalizeText(entry.summary),
+    changes,
+    files
+  };
+};
+
+const changelogEntries = rawEntries.map(normalizeEntry).filter(Boolean);
+const pageSize = 10;
+const totalPages = Math.max(1, Math.ceil(changelogEntries.length / pageSize));
+
+---
+
+<BaseLayout title={title} description={description} version={version}>
+  <section class="section changelog-page">
+    <div class="container">
+      <h1 class="section-title">Changelog</h1>
+      <p class="section-subtitle">
+        All notable changes are tracked here. Releases are listed newest first with version and
+        download metadata.
+      </p>
+      <div class="changelog-top-actions">
+        <a href="/download/" class="btn btn-secondary">Back to download page</a>
+      </div>
+
+      {changelogEntries.length > 0 ? (
+        <Fragment>
+          <ol class="changelog-list" data-total-pages={totalPages}>
+            {changelogEntries.map((entry, idx) => {
+              const entryPage = Math.floor(idx / pageSize) + 1;
+              return (
+                <li id={entry.id} class="changelog-item" data-page={entryPage}>
+                  <article class="changelog-entry">
+                    <header class="changelog-entry-header">
+                      <div class="changelog-entry-title-row">
+                        <h2 class="changelog-entry-title">
+                          <a href={`#${entry.id}`}>v{entry.version}</a>
+                        </h2>
+                        {idx === 0 ? <span class="badge badge-latest">Latest</span> : null}
+                      </div>
+                      <p class="changelog-meta">
+                        {entry.releasedAt ? <span>Released {entry.releasedAt}</span> : null}
+                      </p>
+                    </header>
+
+                    {entry.summary ? <p class="changelog-summary">{entry.summary}</p> : null}
+
+                    {entry.changes.length > 0 ? (
+                      <div class="changelog-groups">
+                        {entry.changes.map((group) => (
+                          <section class="changelog-group">
+                            <h3>{group.label}</h3>
+                            <ul>
+                              {group.items.map((note) => (
+                                <li>{note}</li>
+                              ))}
+                            </ul>
+                          </section>
+                        ))}
+                      </div>
+                    ) : (
+                      <p class="changelog-empty">No detailed notes recorded for this release yet.</p>
+                    )}
+
+                    {entry.files.length > 0 ? (
+                      <div class="changelog-assets">
+                        <h3>Assets</h3>
+                        <ul class="changelog-asset-list">
+                          {entry.files.map((file) => (
+                            <li class="changelog-asset-item">
+                              <span class="changelog-asset-platform">{file.platform}</span>
+                              {file.downloadUrl ? (
+                                <a href={file.downloadUrl}>{file.name}</a>
+                              ) : (
+                                <span>{file.name}</span>
+                              )}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </article>
+                </li>
+              );
+            })}
+          </ol>
+          {totalPages > 1 ? (
+            <Fragment>
+              <nav class="changelog-pagination" aria-label="Changelog pages">
+                <a class="changelog-pagination-link" href="/changelog/" data-pagination-prev>Previous</a>
+                <ol class="changelog-pagination-pages">
+                  {Array.from({ length: totalPages }, (_, index) => index + 1).map((pageNumber) => (
+                    <li>
+                      <a
+                        class="changelog-pagination-link"
+                        href={pageNumber === 1 ? '/changelog/' : `/changelog/?page=${pageNumber}`}
+                        data-pagination-page={pageNumber}
+                      >
+                        {pageNumber}
+                      </a>
+                    </li>
+                  ))}
+                </ol>
+                <a class="changelog-pagination-link" href={totalPages > 1 ? '/changelog/?page=2' : '/changelog/'} data-pagination-next>Next</a>
+              </nav>
+              <p class="changelog-pagination-status" data-pagination-status>Page 1 of {totalPages}</p>
+            </Fragment>
+          ) : null}
+        </Fragment>
+      ) : (
+        <p class="section-subtitle">No changelog entries found. Add releases in <code>public/changelog.json</code>.</p>
+      )}
+
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+function normalizePage(page, totalPages) {
+  if (!Number.isInteger(page) || page < 1) return 1;
+  if (page > totalPages) return totalPages;
+  return page;
+}
+
+function shouldHandleClick(event) {
+  if (event.defaultPrevented) return false;
+  if (event.button !== 0) return false;
+  if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
+  return true;
+}
+
+function updatePaginationLink(link, href, disabled) {
+  if (!link) return;
+  link.setAttribute('href', href);
+  link.setAttribute('aria-disabled', disabled ? 'true' : 'false');
+  link.classList.toggle('is-disabled', disabled);
+  if (disabled) link.setAttribute('tabindex', '-1');
+  else link.removeAttribute('tabindex');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  var root = document.querySelector('.changelog-page');
+  if (!root) return;
+
+  var list = root.querySelector('.changelog-list[data-total-pages]');
+  if (!list) return;
+
+  var totalPages = Number(list.getAttribute('data-total-pages') || '1');
+  if (!Number.isFinite(totalPages) || totalPages <= 1) return;
+
+  var items = Array.prototype.slice.call(list.querySelectorAll('.changelog-item[data-page]'));
+  var pageLinks = Array.prototype.slice.call(root.querySelectorAll('[data-pagination-page]'));
+  var prevLink = root.querySelector('[data-pagination-prev]');
+  var nextLink = root.querySelector('[data-pagination-next]');
+  var status = root.querySelector('[data-pagination-status]');
+
+  function getPageFromUrl() {
+    var params = new URLSearchParams(window.location.search);
+    var value = Number(params.get('page'));
+    return normalizePage(value, totalPages);
+  }
+
+  function urlForPage(page) {
+    return page === 1 ? '/changelog/' : '/changelog/?page=' + page;
+  }
+
+  function renderPage(page) {
+    items.forEach(function (item) {
+      var itemPage = Number(item.getAttribute('data-page') || '1');
+      item.hidden = itemPage !== page;
+    });
+
+    pageLinks.forEach(function (link) {
+      var linkPage = Number(link.getAttribute('data-pagination-page') || '1');
+      var isActive = linkPage === page;
+      link.classList.toggle('is-active', isActive);
+      if (isActive) link.setAttribute('aria-current', 'page');
+      else link.removeAttribute('aria-current');
+    });
+
+    var prevPage = normalizePage(page - 1, totalPages);
+    var nextPage = normalizePage(page + 1, totalPages);
+    updatePaginationLink(prevLink, urlForPage(prevPage), page === 1);
+    updatePaginationLink(nextLink, urlForPage(nextPage), page === totalPages);
+
+    if (status) status.textContent = 'Page ' + page + ' of ' + totalPages;
+  }
+
+  function goToPage(page, pushHistory) {
+    var safePage = normalizePage(page, totalPages);
+    renderPage(safePage);
+
+    if (pushHistory) {
+      var targetUrl = urlForPage(safePage);
+      window.history.pushState({ page: safePage }, '', targetUrl);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  pageLinks.forEach(function (link) {
+    link.addEventListener('click', function (event) {
+      if (!shouldHandleClick(event)) return;
+      event.preventDefault();
+      var page = Number(link.getAttribute('data-pagination-page') || '1');
+      goToPage(page, true);
+    });
+  });
+
+  if (prevLink) {
+    prevLink.addEventListener('click', function (event) {
+      if (!shouldHandleClick(event)) return;
+      if (prevLink.getAttribute('aria-disabled') === 'true') return;
+      event.preventDefault();
+      goToPage(getPageFromUrl() - 1, true);
+    });
+  }
+
+  if (nextLink) {
+    nextLink.addEventListener('click', function (event) {
+      if (!shouldHandleClick(event)) return;
+      if (nextLink.getAttribute('aria-disabled') === 'true') return;
+      event.preventDefault();
+      goToPage(getPageFromUrl() + 1, true);
+    });
+  }
+
+  window.addEventListener('popstate', function () {
+    goToPage(getPageFromUrl(), false);
+  });
+
+  goToPage(getPageFromUrl(), false);
+});
+</script>

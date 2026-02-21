@@ -152,6 +152,9 @@ const linuxBadgeAriaLabel = `GitHub ${linuxDownloadText || 'downloads'}`;
       {hasRelease ? (
         <Fragment>
           <p class="section-subtitle">Latest version: <strong>v{version}</strong> &mdash; released {latestRelease.released_at}</p>
+          <p class="download-secondary-links">
+            <a href="/changelog/" class="btn btn-secondary">Read full changelog</a>
+          </p>
 
           <div class="download-assets">
             {winFile && (
@@ -236,7 +239,12 @@ const linuxBadgeAriaLabel = `GitHub ${linuxDownloadText || 'downloads'}`;
 
         </Fragment>
       ) : (
-        <p class="section-subtitle">Release information is currently unavailable.</p>
+        <Fragment>
+          <p class="section-subtitle">Release information is currently unavailable.</p>
+          <p class="download-secondary-links">
+            <a href="/changelog/" class="btn btn-secondary">Read full changelog</a>
+          </p>
+        </Fragment>
       )}
   
     </div>

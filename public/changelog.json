@@ -1,0 +1,45 @@
+{
+  "repo_base_url": "https://github.com/EasyBackupManager/EasyBackupManager.github.io/",
+  "entries": [
+    {
+      "version": "0.6.31",
+      "tag": "v0.6.31",
+      "released_at": "2026-02-21",
+      "summary": "Current stable release.",
+      "files": {
+        "windows": {
+          "name": "EbmSetup.exe"
+        },
+        "linux": {
+          "name": "EasyBackupManager.AppImage"
+        }
+      },
+      "changes": {
+        "added": ["Additional features and improvements.","Added new backup options."],
+        "changed": ["Changed backup algorithm.","Improved user interface."],
+        "fixed": ["Fixed minor bugs."],
+        "security": ["Fixed download security vulnerabilities.", "Updated security protocols."]
+      }
+    },
+    {
+      "version": "0.6.30",
+      "tag": "0.6.30",
+      "released_at": "2026-02-13",
+      "summary": "Initial release.",
+      "files": {
+        "windows": {
+          "name": "EbmSetup.exe"
+        },
+        "linux": {
+          "name": "EasyBackupManager.AppImage"
+        }
+      },
+      "changes": {
+        "added": ["Initial release."],
+        "changed": [],
+        "fixed": [],
+        "security": []
+      }
+    }
+  ]
+}
