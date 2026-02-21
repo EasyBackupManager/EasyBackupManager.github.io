@@ -581,6 +581,11 @@ code {
   gap: var(--space-sm);
   align-items: center;
   grid-template-columns: 6.5rem minmax(0, 1fr);
+  padding: var(--space-sm) 0;
+}
+
+.changelog-asset-item + .changelog-asset-item {
+  border-top: 1px solid var(--color-border);
 }
 
 .changelog-asset-platform {
@@ -589,9 +594,64 @@ code {
   font-weight: 600;
 }
 
+.changelog-asset-details {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+}
+
+.changelog-asset-sha {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.changelog-asset-sha-label {
+  font-size: 0.78rem;
+  color: var(--color-muted);
+  font-weight: 700;
+}
+
+.changelog-copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background: var(--color-bg);
+  color: var(--color-muted);
+  cursor: pointer;
+  padding: 0;
+}
+
+.changelog-copy-btn:hover {
+  color: var(--color-text);
+  background: var(--color-surface);
+}
+
+.changelog-copy-btn:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.changelog-copy-btn.is-copied {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.changelog-copy-icon {
+  width: 0.9rem;
+  height: 0.9rem;
+  display: block;
+}
+
 .changelog-asset-item code {
   font-size: 0.78rem;
   word-break: break-all;
+  margin-left: 0;
 }
 
 .changelog-pagination {

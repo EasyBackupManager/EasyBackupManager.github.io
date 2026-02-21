@@ -8,10 +8,12 @@
       "summary": "Current stable release.",
       "files": {
         "windows": {
-          "name": "EbmSetup.exe"
+          "name": "EbmSetup.exe",
+          "sha256": "5f2f569bacceeb92ce8f1bdf0108e64449456bca9143b267c99c9af68c70a317"
         },
         "linux": {
-          "name": "EasyBackupManager.AppImage"
+          "name": "EasyBackupManager.AppImage",
+          "sha256": "275a9c2da8d9e2caf5836a0fbfa0b333ec8d0fedb405356116e21549c0a7a157"
         }
       },
       "changes": {
@@ -28,10 +30,12 @@
       "summary": "Initial release.",
       "files": {
         "windows": {
-          "name": "EbmSetup.exe"
+          "name": "EbmSetup.exe",
+          "sha256": "445d6517776107721a1887dc7aec5347d676e523dee71d8eb9518082f372ea78"
         },
         "linux": {
-          "name": "EasyBackupManager.AppImage"
+          "name": "EasyBackupManager.AppImage",
+          "sha256": "433a8e9483735ca81849b018f22ce3d7f47b8fa999eea76235cbbc00173763bd"
         }
       },
       "changes": {

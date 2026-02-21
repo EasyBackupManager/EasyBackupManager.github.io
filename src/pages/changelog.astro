@@ -40,13 +40,32 @@ const makeDownloadUrl = (repo, releaseRef, filename) => {
   }
 };
 
+const makeReleaseTagUrl = (repo, releaseRef) => {
+  if (!repo || !releaseRef) return '';
+  try {
+    if (repo.includes('/releases/tag')) {
+      return repo.endsWith('/') ? `${repo}${releaseRef}` : `${repo}/${releaseRef}`;
+    }
+    if (repo.includes('/releases/download')) {
+      const base = repo.replace('/releases/download', '/releases/tag').replace(/\/$/, '');
+      return `${base}/${releaseRef}`;
+    }
+    return repo.endsWith('/') ? `${repo}releases/tag/${releaseRef}` : `${repo}/releases/tag/${releaseRef}`;
+  } catch (e) {
+    return '';
+  }
+};
+
 const parseAsset = (value) => {
   if (!value || typeof value !== 'object') return null;
 
   const name = normalizeText(value.name);
   if (!name) return null;
 
-  return { name };
+  return {
+    name,
+    sha256: normalizeText(value.sha256)
+  };
 };
 
 const normalizeEntry = (entry) => {
@@ -87,6 +106,7 @@ const normalizeEntry = (entry) => {
   return {
     id: `v-${cleanVersion.replace(/[^0-9A-Za-z._-]+/g, '-')}`,
     version: cleanVersion,
+    releaseUrl: releaseRef ? makeReleaseTagUrl(repoBase, releaseRef) : '',
     releasedAt: normalizeText(entry.released_at),
     summary: normalizeText(entry.summary),
     changes,
@@ -123,7 +143,11 @@ const totalPages = Math.max(1, Math.ceil(changelogEntries.length / pageSize));
                     <header class="changelog-entry-header">
                       <div class="changelog-entry-title-row">
                         <h2 class="changelog-entry-title">
-                          <a href={`#${entry.id}`}>v{entry.version}</a>
+                          {entry.releaseUrl ? (
+                            <a href={entry.releaseUrl} target="_blank" rel="noopener noreferrer">v{entry.version}</a>
+                          ) : (
+                            <a href={`#${entry.id}`}>v{entry.version}</a>
+                          )}
                         </h2>
                         {idx === 0 ? <span class="badge badge-latest">Latest</span> : null}
                       </div>
@@ -159,9 +183,53 @@ const totalPages = Math.max(1, Math.ceil(changelogEntries.length / pageSize));
                             <li class="changelog-asset-item">
                               <span class="changelog-asset-platform">{file.platform}</span>
                               {file.downloadUrl ? (
-                                <a href={file.downloadUrl}>{file.name}</a>
+                                <span class="changelog-asset-details">
+                                  <a href={file.downloadUrl}>{file.name}</a>
+                                  {file.sha256 ? (
+                                    <span class="changelog-asset-sha">
+                                      <span class="changelog-asset-sha-label">SHA256:</span>
+                                      <code>{file.sha256}</code>
+                                      <button
+                                        type="button"
+                                        class="changelog-copy-btn"
+                                        data-copy-sha={file.sha256}
+                                        aria-label="Copy SHA256 to clipboard"
+                                        title="Copy SHA256"
+                                      >
+                                        <svg viewBox="0 0 24 24" aria-hidden="true" class="changelog-copy-icon">
+                                          <path
+                                            fill="currentColor"
+                                            d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z"
+                                          />
+                                        </svg>
+                                      </button>
+                                    </span>
+                                  ) : null}
+                                </span>
                               ) : (
-                                <span>{file.name}</span>
+                                <span class="changelog-asset-details">
+                                  {file.name}
+                                  {file.sha256 ? (
+                                    <span class="changelog-asset-sha">
+                                      <span class="changelog-asset-sha-label">SHA256:</span>
+                                      <code>{file.sha256}</code>
+                                      <button
+                                        type="button"
+                                        class="changelog-copy-btn"
+                                        data-copy-sha={file.sha256}
+                                        aria-label="Copy SHA256 to clipboard"
+                                        title="Copy SHA256"
+                                      >
+                                        <svg viewBox="0 0 24 24" aria-hidden="true" class="changelog-copy-icon">
+                                          <path
+                                            fill="currentColor"
+                                            d="M16 1H6a2 2 0 0 0-2 2v12h2V3h10V1Zm3 4H10a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h9a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2Zm0 16H10V7h9v14Z"
+                                          />
+                                        </svg>
+                                      </button>
+                                    </span>
+                                  ) : null}
+                                </span>
                               )}
                             </li>
                           ))}
@@ -227,9 +295,57 @@ function updatePaginationLink(link, href, disabled) {
   else link.removeAttribute('tabindex');
 }
 
+async function copyText(text) {
+  if (!text) throw new Error('No text to copy');
+
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+
+  var textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'absolute';
+  textarea.style.left = '-9999px';
+  document.body.appendChild(textarea);
+  textarea.select();
+  var copied = document.execCommand('copy');
+  textarea.remove();
+  if (!copied) throw new Error('Copy command failed');
+}
+
+function attachCopyHandlers(root) {
+  var buttons = root.querySelectorAll('[data-copy-sha]');
+  buttons.forEach(function (button) {
+    if (button._copyAttached) return;
+    button.addEventListener('click', async function () {
+      var sha = button.getAttribute('data-copy-sha') || '';
+      var baseLabel = 'Copy SHA256 to clipboard';
+      try {
+        await copyText(sha);
+        button.classList.add('is-copied');
+        button.setAttribute('title', 'Copied');
+        button.setAttribute('aria-label', 'SHA256 copied');
+      } catch (e) {
+        button.setAttribute('title', 'Copy failed');
+        button.setAttribute('aria-label', 'Failed to copy SHA256');
+      }
+      window.setTimeout(function () {
+        button.classList.remove('is-copied');
+        button.setAttribute('title', 'Copy SHA256');
+        button.setAttribute('aria-label', baseLabel);
+      }, 1200);
+    });
+    button._copyAttached = true;
+  });
+}
+
 document.addEventListener('DOMContentLoaded', function () {
   var root = document.querySelector('.changelog-page');
   if (!root) return;
+
+  attachCopyHandlers(root);
 
   var list = root.querySelector('.changelog-list[data-total-pages]');
   if (!list) return;
