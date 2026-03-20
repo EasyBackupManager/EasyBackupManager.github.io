@@ -1,16 +1,16 @@
 {
-  "version": "0.6.32",
-  "tag": "v0.6.32",
-  "released_at": "2026-02-25",
+  "version": "0.7.0",
+  "tag": "0.7.0",
+  "released_at": "2026-03-20",
   "repo_base_url": "https://github.com/EasyBackupManager/EasyBackupManager.github.io/",
   "files": {
     "windows": {
       "name": "EbmSetup.exe",
-      "sha256": "11d3b0d863f3913c4673375bd64be5179668de9f811b8cffd252fee5a2bbd5ab"
+      "sha256": "e04e835da7f2e4c2e10e6e2b405bbe3dc23728ba1f110a6dfbb7ab7e93b14414"
     },
     "linux": {
       "name": "EasyBackupManager.AppImage",
-      "sha256": "11eec4540ac7b079c99a2fa3061ce0f717bdb7b44deddf0732a8cedb9311104a"
+      "sha256": "1c0fa0bc3bdc88d3a6b0c7b1ca377c44282fa0e5a9bae07081783d0d545711aa"
     }
   }
 }
