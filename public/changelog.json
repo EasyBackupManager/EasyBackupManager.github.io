@@ -2,10 +2,32 @@
   "repo_base_url": "https://github.com/EasyBackupManager/EasyBackupManager.github.io/",
   "entries": [
     {
+      "version": "0.7.1",
+      "tag": "0.7.1",
+      "released_at": "2026-03-24",
+      "summary": "Current stable release.",
+      "files": {
+        "windows": {
+          "name": "EbmSetup.exe",
+          "sha256": "95cb3c16793ab12d62768be8863498d5b9f9610636c356c6d675e01464599063"
+        },
+        "linux": {
+          "name": "EasyBackupManager.AppImage",
+          "sha256": "4a285c03f4aea2ee8139ef7cf2d01a396907a42aae7834a05f93cf15b05655aa"
+        }
+      },
+      "changes": {
+        "added": ["New Feature: Automatic Update Check: The application now checks for new releases automatically on startup. If an update is available, you will be notified with a prompt asking whether you would like to update to the latest version. Manual update checking remains available and works as before."],
+        "changed": [""],
+        "fixed": [""],
+        "security": [""]
+      }
+    },
+    {
       "version": "0.7.0",
       "tag": "0.7.0",
       "released_at": "2026-03-20",
-      "summary": "Current stable release.",
+      "summary": "",
       "files": {
         "windows": {
           "name": "EbmSetup.exe",
