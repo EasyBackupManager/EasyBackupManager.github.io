@@ -1,11 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { execSync } from 'node:child_process';
+import packageJson from '../../package.json';
 
 const title = 'About — EasyBackupManager';
 const description = 'Build and version information for the EasyBackupManager website.';
 
-const version = (await import('../../package.json', { with: { type: 'json' } })).default.version ?? 'unknown';
+const version = packageJson.version ?? 'unknown';
 
 let commitHash = 'unknown';
 try {
