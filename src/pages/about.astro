@@ -1,0 +1,65 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { execSync } from 'node:child_process';
+
+const title = 'About — EasyBackupManager';
+const description = 'Build and version information for the EasyBackupManager website.';
+
+const version = (await import('../../package.json', { with: { type: 'json' } })).default.version ?? 'unknown';
+
+let commitHash = 'unknown';
+try {
+  commitHash = execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+} catch {
+  // git not available
+}
+
+const buildTimestamp = new Date().toISOString();
+---
+
+<BaseLayout title={title} description={description} version={version}>
+  <section class="section">
+    <div class="container prose">
+      <h1 style="font-size:2rem;margin-bottom:var(--space-lg);">About</h1>
+
+      <p>Build and version details for the EasyBackupManager website.</p>
+
+      <table class="about-table">
+        <tbody>
+          <tr>
+            <th>Version</th>
+            <td>{version}</td>
+          </tr>
+          <tr>
+            <th>Commit</th>
+            <td><code>{commitHash}</code></td>
+          </tr>
+          <tr>
+            <th>Built at</th>
+            <td><time datetime={buildTimestamp}>{buildTimestamp}</time></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <style>
+    .about-table {
+      border-collapse: collapse;
+      margin-top: var(--space-md, 1rem);
+    }
+    .about-table th,
+    .about-table td {
+      text-align: left;
+      padding: 0.5rem 1rem;
+      border-bottom: 1px solid var(--color-border, #333);
+    }
+    .about-table th {
+      white-space: nowrap;
+      font-weight: 600;
+    }
+    .about-table code {
+      font-family: monospace;
+    }
+  </style>
+</BaseLayout>
