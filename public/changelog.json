@@ -2,10 +2,32 @@
   "repo_base_url": "https://github.com/EasyBackupManager/EasyBackupManager.github.io/",
   "entries": [
     {
+      "version": "0.8.0",
+      "tag": "0.8.0",
+      "released_at": "2026-10-08",
+      "summary": "Current stable release.",
+      "files": {
+        "windows": {
+          "name": "EbmSetup.exe",
+          "sha256": "db552812c28c397ac6ce4f8e7131ee7dff39352509a6908c04611daa690d6603"
+        },
+        "linux": {
+          "name": "EasyBackupManager.AppImage",
+          "sha256": "972aacd4a32322386c0e2b164fe0dbb8aa8c9b49e4e90268beb5f3c400677e09"
+        }
+      },
+      "changes": {
+        "added": ["What's New\nQt 6.12.0 Support\n- Upgraded the application to build with Qt 6.12.0.\n- Updated the codebase to ensure compatibility with the latest Qt APIs and framework changes.\n- Updated Windows and Linux build and packaging configurations to support Qt 6.12.0.\n- Preserved the minimum supported Qt version for broader compatibility.\nRestic 0.19.1 Update (Windows)\n- Updated the bundled Restic binary from 0.18.x to 0.19.1.\n- Updated the Windows installer to include the latest Restic binary.\nBug Fixes & Improvements\n- Fixed minor bugs and improved overall application stability.\n- Refined Qt-related code for better compatibility and maintainability.\n- Applied minor internal improvements and code cleanup.\nNote: This is primarily a maintenance release focused on Qt compatibility, updating the bundled Restic version on Windows, and improving overall stability. No major changes to existing functionality."],
+        "changed": [""],
+        "fixed": [""],
+        "security": [""]
+      }
+    },
+    {
       "version": "0.7.2",
       "tag": "0.7.2",
       "released_at": "2026-09-26",
-      "summary": "Current stable release.",
+      "summary": "",
       "files": {
         "windows": {
           "name": "EbmSetup.exe",
