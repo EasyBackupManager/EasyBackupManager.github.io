@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { marked } from 'marked';
 import latestRelease from '../../public/latest.json';
 import changelogData from '../../public/changelog.json';
 
@@ -23,6 +24,8 @@ const normalizeList = (value) =>
   Array.isArray(value)
     ? value.map((item) => normalizeText(item)).filter(Boolean)
     : [];
+
+const renderMarkdown = (value: string) => marked.parse(value, { async: false });
 
 const makeDownloadUrl = (repo, releaseRef, filename) => {
   if (!repo || !releaseRef || !filename) return '';
@@ -163,11 +166,11 @@ const totalPages = Math.max(1, Math.ceil(changelogEntries.length / pageSize));
                         {entry.changes.map((group) => (
                           <section class="changelog-group">
                             <h3>{group.label}</h3>
-                            <ul>
+                            <div class="changelog-markdown">
                               {group.items.map((note) => (
-                                <li>{note}</li>
+                                <div set:html={renderMarkdown(note)} />
                               ))}
-                            </ul>
+                            </div>
                           </section>
                         ))}
                       </div>
