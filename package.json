@@ -1,7 +1,7 @@
 {
   "name": "EasyBackupManager Website",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "scripts": {
     "dev": "astro dev --host 0.0.0.0",
     "build": "astro build",
@@ -12,6 +12,6 @@
     "@astrojs/sitemap": "^3.7.4",
     "astro": "^7.4.4",
     "crypto": "^1.0.1",
-    "marked": "^17.0.5"
+    "marked": "^18.1.2"
   }
 }
